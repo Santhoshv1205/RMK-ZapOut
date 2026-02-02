@@ -29,7 +29,7 @@ const StaffHistory = () => {
         const res = await getStaffHistory(userId);
         setHistory(res.data);
       } catch (err) {
-        console.error(err);
+        console.error("History Fetch Error:", err);
         setError("Failed to load history");
       } finally {
         setLoading(false);
@@ -38,15 +38,23 @@ const StaffHistory = () => {
 
     fetchHistory();
   }, [userId]);
+// Helper to format ISO date string to 'YYYY-MM-DD'
+const formatDate = (isoString) => {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
   /* ================= FILTER LOGIC ================= */
   const filteredData = history.filter((item) => {
     if (filter === "All") return true;
     if (filter === "Gate Pass") return item.requestType === "Gate Pass";
-    if (filter === "On-Duty") return item.requestType === "On Duty";
+    if (filter === "On-Duty") return item.requestType === "On-Duty";
     if (filter === "Approved") return item.status === "Approved";
     if (filter === "Rejected") return item.status === "Rejected";
-    if (filter === "Pending") return !item.status || item.status === "Pending";
+    if (filter === "Pending") return item.status === "Pending";
     return true;
   });
 
@@ -55,9 +63,7 @@ const StaffHistory = () => {
     history.filter(
       (h) =>
         (!type || h.requestType === type) &&
-        (!status
-          ? !h.status || h.status === "Pending"
-          : h.status === status)
+        (!status ? h.status === "Pending" : h.status === status)
     ).length;
 
   /* ================= UI STATES ================= */
@@ -82,40 +88,14 @@ const StaffHistory = () => {
       {/* COUNT CARDS */}
       <div className="grid grid-cols-6 gap-4 mb-6">
         {/* Gate Pass */}
-        <StatCard
-          title="Gate Pass Pending"
-          value={count("Gate Pass", "Pending")}
-          
-        />
-        <StatCard
-          title="Gate Pass Approved"
-          value={count("Gate Pass", "Approved")}
-          color="green"
-        />
-        <StatCard
-          title="Gate Pass Rejected"
-          value={count("Gate Pass", "Rejected")}
-          color="red"
-        />
-       
+        <StatCard title="Gate Pass Pending" value={count("Gate Pass", "Pending")} color="yellow"/>
+        <StatCard title="Gate Pass Approved" value={count("Gate Pass", "Approved")} color="green"/>
+        <StatCard title="Gate Pass Rejected" value={count("Gate Pass", "Rejected")} color="red"/>
 
         {/* On-Duty */}
-         <StatCard
-          title="On-Duty Pending"
-          value={count("On Duty", "Pending")}
-         
-        />
-        <StatCard
-          title="On-Duty Approved"
-          value={count("On Duty", "Approved")}
-          color="green"
-        />
-        <StatCard
-          title="On-Duty Rejected"
-          value={count("On Duty", "Rejected")}
-          color="red"
-        />
-       
+        <StatCard title="On-Duty Pending" value={count("On-Duty", "Pending")} color="yellow"/>
+        <StatCard title="On-Duty Approved" value={count("On-Duty", "Approved")} color="green"/>
+        <StatCard title="On-Duty Rejected" value={count("On-Duty", "Rejected")} color="red"/>
       </div>
 
       {/* FILTER + DOWNLOAD */}
@@ -156,18 +136,18 @@ const StaffHistory = () => {
             <tr>
               <th className="p-3 text-left">Student</th>
               <th className="p-3">Type</th>
-              <th className="p-3">Reason</th>
-              <th className="p-3">
-                <Calendar size={14} className="inline" /> Date
-              </th>
+              <th className="p-3">Event / Reason</th>
+              <th className="p-3">Date Range</th>
+              <th className="p-3">Total Days</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Remarks</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan="5" className="p-6 text-center text-gray-400">
+                <td colSpan="7" className="p-6 text-center text-gray-400">
                   No records found
                 </td>
               </tr>
@@ -179,8 +159,14 @@ const StaffHistory = () => {
                 >
                   <td className="p-3">{req.studentName}</td>
                   <td className="p-3">{req.requestType}</td>
-                  <td className="p-3">{req.reason}</td>
-                  <td className="p-3">{req.date || "—"}</td>
+                  <td className="p-3">{req.event}</td>
+                 <td className="p-3">
+  {req.fromDate
+    ? formatDate(req.fromDate) + (req.toDate ? ` → ${formatDate(req.toDate)}` : "")
+    : "-"}
+</td>
+
+                  <td className="p-3">{req.totalDays || "-"}</td>
                   <td className="p-3">
                     {req.status === "Approved" ? (
                       <span className="text-green-400 flex items-center gap-1">
@@ -196,6 +182,7 @@ const StaffHistory = () => {
                       </span>
                     )}
                   </td>
+                  <td className="p-3">{req.remarks || "-"}</td>
                 </tr>
               ))
             )}

@@ -9,7 +9,7 @@ const API_URL = "http://localhost:5000/api/history";
  * @returns {Promise} Axios promise with the history data
  */
 export const getStudentHistory = (userId) => {
-  return axios.get(`${API_URL}/student/${userId}`);
+  return axios.get(`${API_URL}/${userId}`); // <-- FIXED
 };
 
 /**

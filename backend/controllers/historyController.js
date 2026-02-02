@@ -119,16 +119,26 @@ export const getStaffHistory = async (req, res) => {
         r.id,
         r.request_type,
         r.status,
+        r.rejected_by,
+        r.rejection_reason,
         r.current_stage,
-
         DATE_FORMAT(r.created_at, '%d-%m-%Y %h:%i %p') AS created_at,
 
         u.username AS student_name,
         u.register_number,
         d.display_name AS department,
 
+        -- Gate Pass Details
         gp.reason AS gp_reason,
-        od.event_name AS od_event_name
+        gp.from_date AS gp_from,
+        gp.to_date AS gp_to,
+        gp.total_days AS gp_total_days,
+
+        -- On-Duty Details
+        od.event_name AS od_event_name,
+        od.from_date AS od_from,
+        od.to_date AS od_to,
+        od.total_days AS od_total_days
 
       FROM requests r
       JOIN students s ON s.id = r.student_id
@@ -137,38 +147,46 @@ export const getStaffHistory = async (req, res) => {
       LEFT JOIN gate_pass_details gp ON gp.request_id = r.id
       LEFT JOIN on_duty_details od ON od.request_id = r.id
 
-      WHERE 
-        r.current_stage = ?
-        OR r.rejected_by = ?
-        OR r.status = CONCAT(?, '_APPROVED')
-
       ORDER BY r.created_at DESC
     `;
 
-    const [rows] = await db.query(sql, [role, role, role]);
+    const [rows] = await db.query(sql);
 
-    // 3️⃣ Clean response for frontend
-    const history = rows.map(r => ({
-      id: r.id,
-      studentName: r.student_name,
-      registerNo: r.register_number,
-      department: r.department,
+    // 3️⃣ Map rows to frontend-friendly format
+    const history = rows.map(r => {
+      const isGatePass = r.request_type === "GATE_PASS";
+      return {
+        id: r.id,
+        studentName: r.student_name,
+        registerNo: r.register_number,
+        department: r.department,
 
-      requestType: r.request_type === "GATE_PASS" ? "Gate Pass" : "On Duty",
+        requestType: isGatePass ? "Gate Pass" : "On-Duty",
 
-      status:
-        r.status === "REJECTED"
-          ? "Rejected"
-          : r.status.includes("APPROVED")
-          ? "Approved"
-          : "Pending",
+        // Date range & total days
+        fromDate: isGatePass ? r.gp_from : r.od_from,
+        toDate: isGatePass ? r.gp_to : r.od_to,
+        totalDays: isGatePass ? r.gp_total_days : r.od_total_days,
 
-      date: r.created_at,
-      reason: r.gp_reason || r.od_event_name || "-"
-    }));
+        // Reason / event
+        event: isGatePass ? r.gp_reason || "-" : r.od_event_name || "-",
+
+        // Status & remarks
+        status:
+          r.status === "REJECTED"
+            ? "Rejected"
+            : r.status.includes("APPROVED")
+            ? "Approved"
+            : "Pending",
+
+        remarks: r.rejection_reason || "-",
+
+        // Request creation date
+        createdAt: r.created_at,
+      };
+    });
 
     res.json(history);
-
   } catch (err) {
     console.error("Staff History Error:", err);
     res.status(500).json({ error: "Server error" });
