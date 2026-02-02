@@ -95,3 +95,86 @@ export const getStudentHistory = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// ================= STAFF HISTORY =================
+export const getStaffHistory = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 1️⃣ Get staff role
+    const [[user]] = await db.query(
+      `SELECT role FROM users WHERE id = ?`,
+      [userId]
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const role = user.role; // COUNSELLOR | COORDINATOR | HOD | WARDEN
+
+    // 2️⃣ Fetch requests relevant to this staff
+    const sql = `
+      SELECT
+        r.id,
+        r.request_type,
+        r.status,
+        r.current_stage,
+
+        DATE_FORMAT(r.created_at, '%d-%m-%Y %h:%i %p') AS created_at,
+
+        u.username AS student_name,
+        u.register_number,
+        d.display_name AS department,
+
+        gp.reason AS gp_reason,
+        od.event_name AS od_event_name
+
+      FROM requests r
+      JOIN students s ON s.id = r.student_id
+      JOIN users u ON u.id = s.user_id
+      JOIN departments d ON d.id = s.department_id
+      LEFT JOIN gate_pass_details gp ON gp.request_id = r.id
+      LEFT JOIN on_duty_details od ON od.request_id = r.id
+
+      WHERE 
+        r.current_stage = ?
+        OR r.rejected_by = ?
+        OR r.status = CONCAT(?, '_APPROVED')
+
+      ORDER BY r.created_at DESC
+    `;
+
+    const [rows] = await db.query(sql, [role, role, role]);
+
+    // 3️⃣ Clean response for frontend
+    const history = rows.map(r => ({
+      id: r.id,
+      studentName: r.student_name,
+      registerNo: r.register_number,
+      department: r.department,
+
+      requestType: r.request_type === "GATE_PASS" ? "Gate Pass" : "On Duty",
+
+      status:
+        r.status === "REJECTED"
+          ? "Rejected"
+          : r.status.includes("APPROVED")
+          ? "Approved"
+          : "Pending",
+
+      date: r.created_at,
+      reason: r.gp_reason || r.od_event_name || "-"
+    }));
+
+    res.json(history);
+
+  } catch (err) {
+    console.error("Staff History Error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+
