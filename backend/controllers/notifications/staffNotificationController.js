@@ -67,7 +67,8 @@ export const sendStudentNotification = async (
   receiverUserId,
   studentId,
   forwarderName,    // who forwarded (counsellor / coordinator)
-  type               // on-duty / gate-pass / system
+  type   ,
+  customMessage = null            // on-duty / gate-pass / system
 ) => {
   try {
     const [rows] = await db.query(
@@ -92,9 +93,13 @@ export const sendStudentNotification = async (
     else if (type === "gate-pass") label = "GATE PASS";
     else label = "SYSTEM";
 
-    const message = forwarderName
-      ? `${forwarderName} forwarded this request for ${student.username} (${student.department} - ${student.year_of_study} Year, Reg: ${student.register_number})`
-      : `${type === "on-duty" ? "New On-Duty request submitted" : "New Gate Pass request submitted"} by ${student.username} (${student.department} - ${student.year_of_study} Year, Reg: ${student.register_number})`;
+ const message = customMessage
+  ? customMessage                                 // ✅ USE REJECTION TEXT
+  : forwarderName
+    ? `${forwarderName} forwarded this request for ${student.username} (${student.department} - ${student.year_of_study} Year, Reg: ${student.register_number})`
+    : `${type === "on-duty"
+        ? "New On-Duty request submitted"
+        : "New Gate Pass request submitted"} by ${student.username} (${student.department} - ${student.year_of_study} Year, Reg: ${student.register_number})`;
 
     const [result] = await db.query(
       "INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)",
