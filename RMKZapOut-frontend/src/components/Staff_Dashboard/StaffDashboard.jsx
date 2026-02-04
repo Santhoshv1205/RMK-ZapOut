@@ -38,12 +38,14 @@ const StaffDashboard = () => {
 
     const user = JSON.parse(storedUser);
 
-    fetchStaffProfile(user.id)
-      .then((data) => {
-        setStaff(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+
+fetchStaffProfile(user.id)
+  .then((res) => {
+    setStaff(res.data.profile); // <-- access the 'data' property
+    setLoading(false);
+  })
+  .catch(() => setLoading(false));
+
   }, []);
 
   return (
@@ -76,7 +78,7 @@ const StaffDashboard = () => {
 
               <div>
                 <p className={`text-lg font-semibold ${GREEN}`}>
-                  Hello{staff?.name ? `, ${staff.name}` : ""}
+                  Hello{staff?.username ? `, ${staff.username}` : ""}
                 </p>
                 <p className="text-xs text-white/60">
                   {staff.role} | {staff.department}
