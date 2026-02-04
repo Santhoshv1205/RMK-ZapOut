@@ -67,7 +67,7 @@ export const notifyStudentOnStatusChange = async (
 export const sendStaffNotification = async (
   studentUserId,
   message,
-  type = "system"
+  type
 ) => {
   try {
     const [result] = await db.query(
@@ -76,6 +76,10 @@ export const sendStaffNotification = async (
       [studentUserId, message, type]
     );
 
+    let label;
+    if (type === "on-duty") label = "ON-DUTY";
+    else if (type === "gate-pass") label = "GATE PASS";
+    else label = "SYSTEM";
     const io = getIO();
     io.to(`user_${studentUserId}`).emit("newNotification", {
       id: result.insertId,

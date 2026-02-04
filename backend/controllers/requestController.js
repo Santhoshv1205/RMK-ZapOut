@@ -478,7 +478,7 @@ const getNextApproverLabel = (nextStage) => {
   await sendStaffNotification(
     reqRow.student_user_id,
     message,
-    "rejection"
+    reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
   );
 
       return res.json({ message: "Rejected successfully" });
@@ -521,7 +521,7 @@ if (action === "APPROVE") {
   await sendStaffNotification(
     reqRow.student_user_id,
     message,
-    reqRow.request_type === "ON_DUTY" ? "approval" : "approval"
+   reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
   );
 
   // ✅ STAFF SIDE
