@@ -1,61 +1,63 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import notificationService from "../../services/notificationService.jsx";
+import socket from "./socket.js"; // ✅ USE SHARED SOCKET
 
-/* ================= CONTEXT ================= */
 const NotificationContext = createContext(null);
 
-/* ================= PROVIDER ================= */
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
-  /* 🔌 Socket + Initial Fetch */
   useEffect(() => {
     if (!userId) return;
 
-    const socket = io("http://localhost:5000");
+    // 🔌 CONNECT SOCKET ONCE
+    if (!socket.connected) {
+      socket.connect();
+    }
 
+    // ✅ JOIN STUDENT ROOM
     socket.emit("joinRoom", userId);
+    console.log("🔗 Student joined room:", userId);
 
+    // 📥 INITIAL FETCH
     notificationService.getNotifications(userId).then((res) => {
       setNotifications(res.data);
     });
 
-    socket.on("newNotification", (notification) => {
+    // 📡 REAL-TIME LISTENER
+    const handleNewNotification = (notification) => {
+      console.log("📩 Student received notification:", notification);
       setNotifications((prev) => [notification, ...prev]);
-    });
+    };
+
+    socket.on("newNotification", handleNewNotification);
 
     return () => {
-      socket.disconnect();
+      socket.off("newNotification", handleNewNotification);
+      // ❌ DO NOT disconnect socket here (used globally)
     };
   }, [userId]);
 
-  /* 🔢 Unread Count */
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  /* ✅ Actions */
+  const markRead = async (id) => {
+    await notificationService.markAsRead(id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n))
+    );
+  };
+
   const markAllRead = async () => {
-    if (!userId) return;
     await notificationService.markAllAsRead(userId);
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, is_read: 1 }))
     );
   };
 
-  const markRead = async (id) => {
-    await notificationService.markAsRead(id);
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, is_read: 1 } : n
-      )
-    );
-  };
-
   const clearAll = async () => {
-    if (!userId) return;
     await notificationService.clearAll(userId);
     setNotifications([]);
   };
@@ -65,8 +67,8 @@ export const NotificationProvider = ({ children }) => {
       value={{
         notifications,
         unreadCount,
-        markAllRead,
         markRead,
+        markAllRead,
         clearAll,
       }}
     >
@@ -75,16 +77,11 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-/* ================= HOOK ================= */
-/* eslint-disable react-refresh/only-export-components */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotifications = () => {
-  const context = useContext(NotificationContext);
-
-  if (!context) {
-    throw new Error(
-      "useNotifications must be used inside NotificationProvider"
-    );
+  const ctx = useContext(NotificationContext);
+  if (!ctx) {
+    throw new Error("useNotifications must be used inside NotificationProvider");
   }
-
-  return context;
+  return ctx;
 };

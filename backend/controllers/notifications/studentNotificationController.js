@@ -1,29 +1,92 @@
-// controllers/notifications/studentNotificationController.js
 import db from "../../config/db.js";
+import { getIO } from "../../config/socket.js";
 
-export const getStudentNotifications = async (req, res) => {
-  const { studentId } = req.params;
-
+/**
+ * Notify student when request status changes
+ */
+export const notifyStudentOnStatusChange = async (
+  requestId,
+  status,        // COUNSELLOR_APPROVED | COORDINATOR_APPROVED | HOD_APPROVED | WARDEN_APPROVED | REJECTED
+  actedByRole    // COUNSELLOR | COORDINATOR | HOD | WARDEN
+) => {
   try {
-    const [notifications] = await db.query(
-      `
-      SELECT
-        id AS request_id,
-        request_type,
-        status,
-        rejected_by,
-        rejection_reason,
-        created_at
-      FROM requests
-      WHERE student_id = ?
-      ORDER BY created_at DESC
-      `,
-      [studentId]
+    // Get request + student user details
+    const [rows] = await db.query(
+      `SELECT 
+         r.request_type,
+         r.rejection_reason,
+         u.id AS user_id
+       FROM requests r
+       JOIN students s ON s.id = r.student_id
+       JOIN users u ON u.id = s.user_id
+       WHERE r.id = ?`,
+      [requestId]
     );
 
-    res.json(notifications);
+    if (!rows.length) return;
+
+    const request = rows[0];
+
+    let message = "";
+    let type = "system";
+
+    if (status === "REJECTED") {
+      message = `Your ${request.request_type.replace("_", " ")} request was rejected by ${actedByRole}` +
+        (request.rejection_reason
+          ? ` (Reason: ${request.rejection_reason})`
+          : "");
+      type = "rejection";
+    } else {
+      const approvedBy = status.replace("_APPROVED", "").replace("_", " ");
+      message = `Your ${request.request_type.replace("_", " ")} request was approved by ${approvedBy}`;
+      type = "approval";
+    }
+
+    // Save notification
+    const [result] = await db.query(
+      "INSERT INTO notifications (user_id, message, type) VALUES (?, ?, ?)",
+      [request.user_id, message, type]
+    );
+
+    // Emit via socket
+    const io = getIO();
+    io.to(`user_${request.user_id}`).emit("newNotification", {
+      id: result.insertId,
+      user_id: request.user_id,
+      message,
+      type,
+      is_read: 0,
+      created_at: new Date(),
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch student notifications" });
+    console.error("Student notification error:", err);
+  }
+};
+
+export const sendStaffNotification = async (
+  studentUserId,
+  message,
+  type = "system"
+) => {
+  try {
+    const [result] = await db.query(
+      `INSERT INTO notifications (user_id, message, type)
+       VALUES (?, ?, ?)`,
+      [studentUserId, message, type]
+    );
+
+    const io = getIO();
+    io.to(`user_${studentUserId}`).emit("newNotification", {
+      id: result.insertId,
+      user_id: studentUserId,
+      message,
+      type,
+      is_read: 0,
+      created_at: new Date(),
+    });
+
+  } catch (err) {
+    console.error("sendStaffNotification error:", err);
   }
 };

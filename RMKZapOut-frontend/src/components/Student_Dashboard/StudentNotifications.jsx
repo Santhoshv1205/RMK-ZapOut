@@ -1,187 +1,126 @@
-import { useState } from "react";
-import {
-  Bell,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Trash2,
-  Eye,
-  EyeOff
-} from "lucide-react";
+import { Bell, Trash2, Check, CalendarCheck, LogOut } from "lucide-react";
+import { useNotifications } from "../context/NotificationContext.jsx";
 
-const initialNotifications = [
-  {
-    id: 1,
-    message: "Your Gate Pass request has been approved",
-    type: "approval",
-    time: "2 mins ago",
-    read: false
-  },
-  {
-    id: 2,
-    message: "Your request is with HOD",
-    type: "system",
-    time: "15 mins ago",
-    read: false
-  },
-  {
-    id: 3,
-    message: "Return time approaching (30 mins)",
-    type: "reminder",
-    time: "1 hour ago",
-    read: true
-  },
-  {
-    id: 4,
-    message: "QR code activated for today",
-    type: "system",
-    time: "Yesterday",
-    read: true
-  }
-];
+const StudentNotification = () => {
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    clearAll,
+  } = useNotifications();
 
-const typeConfig = {
-  approval: {
-    icon: CheckCircle,
-    color: "text-green-400"
-  },
-  reminder: {
-    icon: Clock,
-    color: "text-yellow-400"
-  },
-  system: {
-    icon: AlertCircle,
-    color: "text-cyan-400"
-  }
-};
+  const getTypeStyle = (type) => {
+    if (type === "on-duty") {
+      return {
+        bg: "bg-emerald-900/20 border-emerald-600/50",
+        badge: "bg-emerald-600",
+        icon: <CalendarCheck size={20} className="text-emerald-400" />,
+        label: "ON-DUTY",
+      };
+    }
 
-export default function StudentNotifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [activeFilter, setActiveFilter] = useState("all");
+    if (type === "gate-pass") {
+      return {
+        bg: "bg-indigo-900/20 border-indigo-600/50",
+        badge: "bg-indigo-600",
+        icon: <LogOut size={20} className="text-indigo-400" />,
+        label: "GATE PASS",
+      };
+    }
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const filteredNotifications =
-    activeFilter === "all"
-      ? notifications
-      : notifications.filter(n => n.type === activeFilter);
-
-  const markAsRead = id => {
-    setNotifications(prev =>
-      prev.map(n =>
-        n.id === id ? { ...n, read: true } : n
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, read: true }))
-    );
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
+    return {
+      bg: "bg-gray-800/30 border-gray-700/50",
+      badge: "bg-gray-600",
+      icon: <Bell size={20} className="text-gray-400" />,
+      label: "SYSTEM",
+    };
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="max-w-5xl mx-auto mt-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-xl border border-gray-700 overflow-hidden">
+      
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-cyan-300 flex items-center gap-2">
-          <Bell className="text-cyan-400" />
-          Notifications
-        </h2>
-
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700 bg-gray-900/80">
         <div className="flex items-center gap-3">
-          {/* Unread Glass Card */}
-          <div className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-400 backdrop-blur-md text-red-300 text-sm">
-            {unreadCount} Unread
-          </div>
+          <Bell className="text-indigo-400" />
+          <h3 className="text-xl font-semibold text-white">Notifications</h3>
+          {unreadCount > 0 && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </div>
 
-          {/* Mark All As Read Glass Card */}
+        <div className="flex gap-2">
           <button
-            onClick={markAllAsRead}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-400 backdrop-blur-md text-cyan-300 text-sm hover:bg-cyan-500/30"
+            onClick={markAllRead}
+            className="flex items-center gap-1 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition"
           >
-            <EyeOff size={16} />
-            Mark All as Read
+            <Check size={16} /> Mark All Read
           </button>
 
-          {/* Clear All Glass Card */}
           <button
             onClick={clearAll}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-400 backdrop-blur-md text-red-300 text-sm hover:bg-red-500/30"
+            className="flex items-center gap-1 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition"
           >
-            <Trash2 size={16} />
-            Clear All
+            <Trash2 size={16} /> Clear All
           </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3">
-        {["all", "approval", "reminder", "system"].map(type => (
-          <button
-            key={type}
-            onClick={() => setActiveFilter(type)}
-            className={`px-4 py-2 rounded-lg text-sm backdrop-blur-md border transition
-              ${
-                activeFilter === type
-                  ? "bg-cyan-500/30 text-white border-cyan-400"
-                  : "bg-white/10 text-gray-300 border-white/20 hover:bg-white/20"
-              }`}
-          >
-            {type === "all"
-              ? "All"
-              : type.charAt(0).toUpperCase() + type.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Notifications */}
-      <div className="space-y-4">
-        {filteredNotifications.length === 0 ? (
-          <div className="text-center text-gray-400 py-10">
-            No notifications available
+      {/* Body */}
+      <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
+        {notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <Bell size={48} className="mb-4 opacity-40" />
+            <p className="text-lg">No notifications available</p>
           </div>
         ) : (
-          filteredNotifications.map(notification => {
-            const Icon = typeConfig[notification.type].icon;
+          notifications.map((n) => {
+            const style = getTypeStyle(n.type);
 
             return (
               <div
-                key={notification.id}
-                className={`flex justify-between items-start p-5 rounded-xl backdrop-blur-xl border
-                  ${
-                    notification.read
-                      ? "bg-white/10 border-white/20"
-                      : "bg-cyan-500/10 border-cyan-400"
-                  }`}
+                key={n.id}
+                className={`p-4 rounded-xl border flex justify-between items-start gap-4 transition-all hover:scale-[1.01] ${
+                  style.bg
+                } ${!n.is_read && "ring-1 ring-indigo-500/30"}`}
               >
-                <div className="flex gap-4">
-                  <Icon
-                    size={22}
-                    className={typeConfig[notification.type].color}
-                  />
+                <div className="flex gap-3">
+                  <div className="mt-1">{style.icon}</div>
 
-                  <div>
-                    <p className="text-white font-medium">
-                      {notification.message}
+                  <div className="space-y-1">
+                    {/* Badge */}
+                    <span
+                      className={`inline-block px-2 py-0.5 text-xs text-white rounded-full ${style.badge}`}
+                    >
+                      {style.label}
+                    </span>
+
+                    {/* Message */}
+                    <p className="font-medium text-white">
+                      {n.message}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {notification.time}
+
+                    {/* Timestamp */}
+                    <p className="text-xs text-gray-400">
+                           {n.created_at
+  ? new Date(n.created_at).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    })
+  : "Just now"}
                     </p>
                   </div>
                 </div>
 
-                {!notification.read && (
+                {!n.is_read && (
                   <button
-                    onClick={() => markAsRead(notification.id)}
-                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    onClick={() => markRead(n.id)}
+                    className="flex items-center gap-1 text-green-400 hover:text-green-500 text-sm"
                   >
-                    <Eye size={16} />
-                    Mark as Read
+                    <Check size={16} /> Read
                   </button>
                 )}
               </div>
@@ -191,4 +130,6 @@ export default function StudentNotifications() {
       </div>
     </div>
   );
-}
+};
+
+export default StudentNotification;

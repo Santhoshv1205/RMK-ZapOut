@@ -11,6 +11,9 @@ export const initSocket = (httpServer) => {
     console.log("User connected:", socket.id);
 
     socket.on("joinRoom", (userId) => {
+      // ✅ CHANGED: guard null / undefined
+      if (!userId) return;
+
       socket.join(`user_${userId}`);
       console.log(`User ${userId} joined room user_${userId}`);
     });
@@ -24,8 +27,6 @@ export const initSocket = (httpServer) => {
 };
 
 export const getIO = () => {
-  if (!io) {
-    throw new Error("Socket.io not initialized");
-  }
+  if (!io) throw new Error("Socket.io not initialized");
   return io;
 };

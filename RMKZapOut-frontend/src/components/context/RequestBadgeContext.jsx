@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import socket from "../context/socket.js";
+import socket from "./socket"; // ✅ CHANGED: shared socket
 
 const RequestBadgeContext = createContext(null);
 
@@ -12,12 +12,16 @@ export const RequestBadgeProvider = ({ children }) => {
   useEffect(() => {
     if (!staffId) return;
 
-    if (!socket.connected) socket.connect();
+    // ✅ CHANGED: reuse same socket
+    if (!socket.connected) {
+      socket.connect();
+    }
 
+    console.log("🔗 Staff socket join:", staffId);
     socket.emit("joinRoom", staffId);
 
     const handleNewRequest = () => {
-      console.log("New request received!"); // debug
+      console.log("📥 New request for staff");
       setNewRequestCount((prev) => prev + 1);
     };
 
@@ -28,9 +32,7 @@ export const RequestBadgeProvider = ({ children }) => {
     };
   }, [staffId]);
 
-  const clearRequestBadge = () => {
-    setNewRequestCount(0);
-  };
+  const clearRequestBadge = () => setNewRequestCount(0);
 
   return (
     <RequestBadgeContext.Provider
