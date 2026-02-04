@@ -444,16 +444,21 @@ export const updateRequestStatus = async (req, res) => {
 
      d.name AS department_name,
 
-     cs.user_id AS counsellor_user_id
+     cs.user_id AS counsellor_user_id,
+     co.user_id AS coordinator_user_id
 
    FROM requests r
    JOIN students s ON r.student_id = s.id
    JOIN users u ON s.user_id = u.id
    LEFT JOIN departments d ON d.id = s.department_id
    LEFT JOIN counsellors cs ON cs.id = s.counsellor_id
+   LEFT JOIN coordinators co 
+       ON co.department_id = s.department_id 
+       AND co.year = s.year_of_study
    WHERE r.id = ?`,
   [requestId]
 );
+
 
 
     if (!reqRow) {
@@ -461,58 +466,64 @@ export const updateRequestStatus = async (req, res) => {
     }
 
     /* ===================== REJECT ===================== */
-    if (action === "REJECT") {
-      await db.query(
-        `UPDATE requests
-         SET status = 'REJECTED',
-             rejected_by = ?,
-             rejection_reason = ?,
-             current_stage = 'COUNSELLOR'
-         WHERE id = ?`,
-        [role, rejectionReason || null, requestId]
-      );
+   if (action === "REJECT") {
+  await db.query(
+    `UPDATE requests
+     SET status = 'REJECTED',
+         rejected_by = ?,
+         rejection_reason = ?,
+         current_stage = ?  -- can keep as the rejecting stage
+     WHERE id = ?`,
+    [role, rejectionReason || null, role, requestId]
+  );
 
-      const message =
-        `Your ${reqRow.request_type.replace("_", " ").toLowerCase()} request was rejected by ${role}` +
-        (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
+  // Student notification
+  const studentMessage =
+    `Your ${reqRow.request_type.replace("_", " ").toLowerCase()} request was rejected by ${role}` +
+    (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
 
-      await sendStaffNotification(
-        reqRow.student_user_id,
-        message,
-        reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
-      );
-       /* =====================================================
-     🔥 NEW: COUNSELLOR NOTIFICATION WHEN COORDINATOR REJECTS
-     ===================================================== */
-if (role === "COORDINATOR" && reqRow.counsellor_user_id) {
+  await sendStaffNotification(
+    reqRow.student_user_id,
+    studentMessage,
+    reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
+  );
+
+  // 🔥 Notify previous stage staff
+  const roleOrder = ["COUNSELLOR", "COORDINATOR", "HOD", "WARDEN"];
+  const rejectIndex = roleOrder.indexOf(role);
+  const previousStages = roleOrder.slice(0, rejectIndex); // stages before the rejecting role
+
+  const staffMap = {
+    COUNSELLOR: reqRow.counsellor_user_id,
+    COORDINATOR: reqRow.coordinator_user_id, // make sure you select this in query
+    HOD: reqRow.hod_user_id,
+    WARDEN: reqRow.warden_user_id,
+  };
 
   const formattedType = reqRow.request_type.replace("_", " ");
+  const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
 
-const roleLabel =
-  role.charAt(0) + role.slice(1).toLowerCase(); // COORDINATOR → Coordinator
+  for (const stage of previousStages) {
+    if (staffMap[stage]) {
+      const msg =
+        `${roleLabel} rejected this ${formattedType} request for ` +
+        `${reqRow.student_name} (` +
+        `${reqRow.department_name} - ${reqRow.student_year} Year, ` +
+        `Reg: ${reqRow.register_number})` +
+        (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
 
-const counsellorRejectMessage =
-  `${roleLabel} rejected this ${formattedType} request for ` +
-  `${reqRow.student_name} (` +
-  `${reqRow.department_name} - ${reqRow.student_year} Year, ` +
-  `Reg: ${reqRow.register_number})`+
-  (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
-
-
- await sendStudentNotification(
-    reqRow.counsellor_user_id,          // receiver (counsellor)
-    reqRow.student_user_id,             // student
-    roleLabel,                          // ✅ FIXED
-    reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass",
-    counsellorRejectMessage
-  );
-}
-
-
-
-
-      return res.json({ message: "Rejected successfully" });
+      await sendStudentNotification(
+        staffMap[stage],           // receiver (staff of previous stage)
+        reqRow.student_user_id,    // student id
+        roleLabel,                 // role who rejected
+        reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass",
+        msg
+      );
     }
+  }
+
+  return res.json({ message: "Rejected successfully" });
+}
 
     /* ===================== APPROVE ===================== */
     if (action === "APPROVE") {
