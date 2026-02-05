@@ -287,6 +287,7 @@ export const getStaffRequests = async (req, res) => {
         s.id AS student_id,
         s.department_id,
         s.year_of_study,
+        s.counsellor_id,
 
         cs.user_id AS counsellor_user_id,
 
@@ -323,50 +324,47 @@ export const getStaffRequests = async (req, res) => {
         ORDER BY r.created_at DESC
       `;
       params = [staffId];
-    } else if (role === "COORDINATOR") {
-      /* ================= COORDINATOR ================= */
+    }
+
+    /* ================= COORDINATOR (ALL 3 CASES) ================= */
+    else if (role === "COORDINATOR") {
       query = `
-    ${baseSelect}
-    WHERE
-      (
-        -- Coordinator-level approval
-        r.current_stage = 'COORDINATOR'
-        AND EXISTS (
-          SELECT 1
-          FROM coordinators c
-          WHERE c.user_id = ?
-            AND c.department_id = s.department_id
-            AND c.year = s.year_of_study
-        )
-      )
-      OR
-      (
-        -- Counsellor-level stage visible to coordinator IF student year matches coordinator year
-        r.current_stage = 'COUNSELLOR'
-        AND EXISTS (
-          SELECT 1
-          FROM coordinators c
-          WHERE c.user_id = ?
-            AND c.year = s.year_of_study
-            AND c.id=s.counsellor_id
-        )
-      )
-      OR
-      (
-        -- Counsellor-stage requests visible IF student.counsellor_id matches coordinator.id
-        r.current_stage = 'COUNSELLOR'
-        AND EXISTS (
-          SELECT 1
-          FROM coordinators c
-          WHERE c.user_id = ?
-            AND c.id = s.counsellor_id
-        )
-      )
-    ORDER BY r.created_at DESC
-  `;
+        ${baseSelect}
+        WHERE
+          (
+            r.current_stage = 'COORDINATOR'
+            AND EXISTS (
+              SELECT 1 FROM coordinators c
+              WHERE c.user_id = ?
+                AND c.department_id = s.department_id
+                AND c.year = s.year_of_study
+            )
+          )
+          OR
+          (
+            r.current_stage = 'COUNSELLOR'
+            AND EXISTS (
+              SELECT 1 FROM coordinators c
+              WHERE c.user_id = ?
+                AND c.id = s.counsellor_id
+            )
+          )
+          OR
+          (
+            r.current_stage = 'COUNSELLOR'
+            AND EXISTS (
+              SELECT 1 FROM coordinators c
+              WHERE c.user_id = ?
+                AND c.year = s.year_of_study
+            )
+          )
+        ORDER BY r.created_at DESC
+      `;
       params = [staffId, staffId, staffId];
-    } else if (role === "HOD") {
-      /* ================= HOD ================= */
+    }
+
+    /* ================= HOD ================= */
+    else if (role === "HOD") {
       query = `
         ${baseSelect}
         JOIN hods h ON h.user_id = ?
@@ -375,14 +373,9 @@ export const getStaffRequests = async (req, res) => {
         ORDER BY r.created_at DESC
       `;
       params = [staffId];
-    } else if (role === "WARDEN") {
-      /* ================= WARDEN ================= */
-      query = `
-        ${baseSelect}
-        WHERE r.current_stage = 'WARDEN'
-        ORDER BY r.created_at DESC
-      `;
-    } else {
+    }
+
+    else {
       return res.status(400).json({ message: "Invalid role" });
     }
 
@@ -403,12 +396,11 @@ export const getStaffRequests = async (req, res) => {
           r.current_stage === "COUNSELLOR" &&
           r.counsellor_user_id == staffId
         ) {
-          actionable = true; // counsellor-level approval
+          actionable = true;
         }
       }
 
       if (role === "HOD" && r.current_stage === "HOD") actionable = true;
-      if (role === "WARDEN" && r.current_stage === "WARDEN") actionable = true;
 
       return { ...r, actionable };
     });
@@ -420,6 +412,7 @@ export const getStaffRequests = async (req, res) => {
   }
 };
 
+
 /* ================= UPDATE REQUEST STATUS (APPROVE/REJECT) ================= */
 
 export const updateRequestStatus = async (req, res) => {
@@ -430,117 +423,157 @@ export const updateRequestStatus = async (req, res) => {
   let nextStatus = null;
 
   try {
-  const [[reqRow]] = await db.query(
-  `SELECT 
-     r.current_stage, 
-     r.request_type,
+    /* ================= FETCH REQUEST CONTEXT ================= */
+    const [[reqRow]] = await db.query(
+      `SELECT 
+         r.current_stage,
+         r.request_type,
 
-     s.year_of_study AS student_year,
-     s.user_id AS student_user_id,
-     s.department_id,
+         s.year_of_study AS student_year,
+         s.user_id AS student_user_id,
+         s.department_id,
+         s.counsellor_id,
 
-     u.username AS student_name,
-     u.register_number,
+         u.username AS student_name,
+         u.register_number,
 
-     d.name AS department_name,
+         d.name AS department_name,
 
-     cs.user_id AS counsellor_user_id,
-     co.user_id AS coordinator_user_id
+         cs.user_id AS counsellor_user_id,
+         co.user_id AS coordinator_user_id
 
-   FROM requests r
-   JOIN students s ON r.student_id = s.id
-   JOIN users u ON s.user_id = u.id
-   LEFT JOIN departments d ON d.id = s.department_id
-   LEFT JOIN counsellors cs ON cs.id = s.counsellor_id
-   LEFT JOIN coordinators co 
-       ON co.department_id = s.department_id 
-       AND co.year = s.year_of_study
-   WHERE r.id = ?`,
-  [requestId]
-);
-
-
+       FROM requests r
+       JOIN students s ON r.student_id = s.id
+       JOIN users u ON s.user_id = u.id
+       LEFT JOIN departments d ON d.id = s.department_id
+       LEFT JOIN counsellors cs ON cs.id = s.counsellor_id
+       LEFT JOIN coordinators co 
+         ON co.department_id = s.department_id 
+        AND co.year = s.year_of_study
+       WHERE r.id = ?`,
+      [requestId]
+    );
 
     if (!reqRow) {
       return res.status(404).json({ message: "Request not found" });
     }
 
     /* ===================== REJECT ===================== */
-   if (action === "REJECT") {
-  await db.query(
-    `UPDATE requests
-     SET status = 'REJECTED',
-         rejected_by = ?,
-         rejection_reason = ?,
-         current_stage = ?  -- can keep as the rejecting stage
-     WHERE id = ?`,
-    [role, rejectionReason || null, role, requestId]
-  );
+    if (action === "REJECT") {
+      await db.query(
+        `UPDATE requests
+         SET status = 'REJECTED',
+             rejected_by = ?,
+             rejection_reason = ?,
+             current_stage = ?
+         WHERE id = ?`,
+        [role, rejectionReason || null, role, requestId]
+      );
 
-  // Student notification
-  const studentMessage =
-    `Your ${reqRow.request_type.replace("_", " ").toLowerCase()} request was rejected by ${role}` +
-    (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
-
-  await sendStaffNotification(
-    reqRow.student_user_id,
-    studentMessage,
-    reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
-  );
-
-  // 🔥 Notify previous stage staff
-  const roleOrder = ["COUNSELLOR", "COORDINATOR", "HOD", "WARDEN"];
-  const rejectIndex = roleOrder.indexOf(role);
-  const previousStages = roleOrder.slice(0, rejectIndex); // stages before the rejecting role
-
-  const staffMap = {
-    COUNSELLOR: reqRow.counsellor_user_id,
-    COORDINATOR: reqRow.coordinator_user_id, // make sure you select this in query
-    HOD: reqRow.hod_user_id,
-    WARDEN: reqRow.warden_user_id,
-  };
-
-  const formattedType = reqRow.request_type.replace("_", " ");
-  const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
-
-  for (const stage of previousStages) {
-    if (staffMap[stage]) {
-      const msg =
-        `${roleLabel} rejected this ${formattedType} request for ` +
-        `${reqRow.student_name} (` +
-        `${reqRow.department_name} - ${reqRow.student_year} Year, ` +
-        `Reg: ${reqRow.register_number})` +
+      /* -------- STUDENT NOTIFICATION -------- */
+      const studentMessage =
+        `Your ${reqRow.request_type.replace("_", " ").toLowerCase()} request ` +
+        `was rejected by ${role}` +
         (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
 
-      await sendStudentNotification(
-        staffMap[stage],           // receiver (staff of previous stage)
-        reqRow.student_user_id,    // student id
-        roleLabel,                 // role who rejected
-        reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass",
-        msg
+      await sendStaffNotification(
+        reqRow.student_user_id,
+        studentMessage,
+        reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
       );
-    }
-  }
 
-  return res.json({ message: "Rejected successfully" });
-}
+      /* -------- PREVIOUS STAFF NOTIFICATION -------- */
+      const roleOrder = ["COUNSELLOR", "COORDINATOR", "HOD", "WARDEN"];
+      const rejectIndex = roleOrder.indexOf(role);
+
+      const staffMap = {
+        COUNSELLOR: reqRow.counsellor_user_id,
+        COORDINATOR: reqRow.coordinator_user_id,
+      };
+
+      const formattedType = reqRow.request_type.replace("_", " ");
+      const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
+
+      for (let i = 0; i < rejectIndex; i++) {
+        const stage = roleOrder[i];
+        const staffUserId = staffMap[stage];
+
+        if (staffUserId) {
+          const msg =
+            `${roleLabel} rejected this ${formattedType} request for ` +
+            `${reqRow.student_name} (` +
+            `${reqRow.department_name} - ${reqRow.student_year} Year, ` +
+            `Reg: ${reqRow.register_number})` +
+            (rejectionReason ? ` (Reason: ${rejectionReason})` : "");
+
+          await sendStudentNotification(
+            staffUserId,
+            reqRow.student_user_id,
+            roleLabel,
+            reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass",
+            msg
+          );
+        }
+      }
+
+      return res.json({ message: "Rejected successfully" });
+    }
 
     /* ===================== APPROVE ===================== */
     if (action === "APPROVE") {
 
+      /* -------- COUNSELLOR -------- */
       if (role === "COUNSELLOR" && reqRow.current_stage === "COUNSELLOR") {
         nextStage = "COORDINATOR";
         nextStatus = "COUNSELLOR_APPROVED";
+      }
 
-      } else if (role === "COORDINATOR" && reqRow.current_stage === "COORDINATOR") {
-        nextStage = "HOD";
-        nextStatus = "COORDINATOR_APPROVED";
+      /* -------- COORDINATOR (ALL 3 USE-CASES) -------- */
+      else if (role === "COORDINATOR") {
 
-      } else if (role === "HOD" && reqRow.current_stage === "HOD") {
+        // Case 1: Normal coordinator stage
+        if (reqRow.current_stage === "COORDINATOR") {
+          nextStage = "HOD";
+          nextStatus = "COORDINATOR_APPROVED";
+        }
+
+        // Case 2 & 3: Coordinator approving counsellor-stage
+        else if (reqRow.current_stage === "COUNSELLOR") {
+          const [[coord]] = await db.query(
+            `SELECT id, year FROM coordinators WHERE user_id = ?`,
+            [staffId]
+          );
+
+          if (!coord) {
+            return res.status(403).json({ message: "Coordinator not found" });
+          }
+
+          // 🔥 CASE 2: Coordinator year matches student → skip counsellor
+          if (coord.year === reqRow.student_year) {
+            nextStage = "HOD";
+            nextStatus = "COORDINATOR_APPROVED";
+          }
+
+          // 🔥 CASE 3: Coordinator is assigned counsellor
+          else if (coord.id === reqRow.counsellor_id) {
+            nextStage = "COORDINATOR";
+            nextStatus = "COUNSELLOR_APPROVED";
+          }
+
+          else {
+            return res.status(403).json({ message: "Invalid approval action" });
+          }
+        }
+      }
+
+      /* -------- HOD -------- */
+      else if (role === "HOD" && reqRow.current_stage === "HOD") {
         nextStage = "WARDEN";
         nextStatus = "HOD_APPROVED";
+      }
 
-      } else if (role === "WARDEN" && reqRow.current_stage === "WARDEN") {
+      /* -------- WARDEN -------- */
+      else if (role === "WARDEN" && reqRow.current_stage === "WARDEN") {
         nextStage = "COMPLETED";
         nextStatus = "WARDEN_APPROVED";
       }
@@ -549,9 +582,10 @@ export const updateRequestStatus = async (req, res) => {
         return res.status(403).json({ message: "Invalid approval action" });
       }
 
+      /* ================= UPDATE REQUEST ================= */
       await db.query(
-        `UPDATE requests 
-         SET status = ?, current_stage = ? 
+        `UPDATE requests
+         SET status = ?, current_stage = ?
          WHERE id = ?`,
         [nextStatus, nextStage, requestId]
       );
@@ -570,15 +604,13 @@ export const updateRequestStatus = async (req, res) => {
         reqRow.request_type === "ON_DUTY" ? "on-duty" : "gate-pass"
       );
 
-      /* -------- STAFF NOTIFICATION -------- */
-      const forwarderName = role; // ✅ FIX: defined properly
-
+      /* -------- STAFF NOTIFICATION (SOCKET) -------- */
       await notifyNextApprovers(
         nextStage,
         reqRow,
         requestId,
         staffId,
-        forwarderName
+        role
       );
 
       return res.json({ message: "Approved successfully" });
