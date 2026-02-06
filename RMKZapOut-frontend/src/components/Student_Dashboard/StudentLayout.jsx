@@ -83,12 +83,12 @@ const StudentLayout = () => {
             onClick={() => navigate("/student/notifications")}
           />
 
-          <SidebarItem
+          {/* <SidebarItem
             icon={<Users size={18} />}
             label="Staffs"
             active={isActive("/student/staffs")}
             onClick={() => navigate("/student/staffs")}
-          />
+          /> */}
 
           <SidebarItem
             icon={<User size={18} />}
