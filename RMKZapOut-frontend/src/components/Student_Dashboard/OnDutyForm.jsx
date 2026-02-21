@@ -162,19 +162,23 @@ console.log("FormData to be sent:");
           />
          {previewUrl && (
   <div className="mt-4">
+  {form.proof && (
+  <div className="mt-4">
     {form.proof.type === "application/pdf" ? (
       <iframe
-        src={previewUrl}
+        src={URL.createObjectURL(form.proof)}
         className="w-full h-96 rounded-xl border border-white/20"
         title="PDF Preview"
       />
     ) : (
       <img
-        src={previewUrl}
+        src={URL.createObjectURL(form.proof)}
         alt="Preview"
         className="max-h-80 rounded-xl border border-white/20"
       />
     )}
+  </div>
+)}
   </div>
 )}
         </Section>

@@ -145,6 +145,7 @@ if (req.file) {
     res
       .status(201)
       .json({ message: "On-Duty applied successfully", requestId });
+      console.log(req.file);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

@@ -302,6 +302,7 @@ export const getStaffRequests = async (req, res) => {
         od.from_date AS od_from_date,
         od.to_date AS od_to_date,
         od.total_days AS od_total_days,
+        od.proof_file AS od_proof_file,
 
         gp.reason,
         gp.from_date AS gp_from_date,

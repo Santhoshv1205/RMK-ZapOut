@@ -31,7 +31,7 @@ const StaffRequests = () => {
   const staffId = user?.id;
   const role = user?.role;
   const coordinatorYear = user?.year;
-
+const [previewUrl, setPreviewUrl] = useState(null);
   const [filter, setFilter] = useState("All");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +76,16 @@ const { clearRequestBadge } = useRequestBadge();
       setLoading(false);
     }
   };
+  const loadPreview = async (url) => {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const localUrl = URL.createObjectURL(blob);
+    setPreviewUrl(localUrl);
+  } catch (err) {
+    console.error("Preview load failed:", err);
+  }
+};
 
   useEffect(() => {
     if (staffId && role) loadRequests();
@@ -221,7 +231,33 @@ const getStatusText = (r) => {
     </p>
   </div>
 )}
+{/* ===== PROOF FILE ===== */}
+{r.od_proof_file && (
+  <div className="mt-4">
+    <p className="font-semibold mb-2">Proof Document:</p>
 
+    {!previewUrl ? (
+      <button
+        onClick={() => loadPreview(r.od_proof_file)}
+        className="px-4 py-2 bg-cyan-500 rounded-lg text-sm"
+      >
+        Load Preview
+      </button>
+    ) : r.od_proof_file.toLowerCase().endsWith(".pdf") ? (
+      <iframe
+        src={previewUrl}
+        className="w-full h-96 rounded-xl border border-white/20"
+        title="PDF Preview"
+      />
+    ) : (
+      <img
+        src={previewUrl}
+        alt="Preview"
+        className="max-h-80 rounded-xl border border-white/20"
+      />
+    )}
+  </div>
+)}
 {/* ================= GATE PASS DETAILS ================= */}
 {r.request_type === "GATE_PASS" && (
   <div className="mt-3 text-sm text-white/80 space-y-1">
