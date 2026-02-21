@@ -251,6 +251,17 @@ return (
                     <Card label="Total Days" value={r.od_total_days} />
                   </>
                 )}
+                {r.request_type === "GATE_PASS" && (
+                  <>
+                    <EditableCard label="Reason" name="reason" value={isEditing ? editData.reason : r.reason} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="Out Time" name="outTime" value={isEditing ? editData.outTime : r.out_time} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="In Time" name="inTime" value={isEditing ? editData.inTime : r.in_time} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate : r.gp_from_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.gp_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
+                    <Card label="Total Days" value={r.gp_total_days} />
+                  </>
+                )}
+
               </div>
 
               {/* APPROVAL FLOW */}
