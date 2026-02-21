@@ -10,9 +10,7 @@ export const cancelRequest = (requestId) =>
   axios.delete(`${API}/${requestId}`);
 
 export const updateRequest = (requestId, data) =>
-  axios.put(`${API}/${requestId}`, data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  axios.put(`${API}/${requestId}`, data);
 
 /* ================= STAFF ================= */
 export const fetchStaffRequests = (staffId, role) => {

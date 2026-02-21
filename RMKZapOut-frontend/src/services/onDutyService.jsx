@@ -8,6 +8,4 @@ export const fetchStudentProfile = (userId) =>
 
 // Apply on-duty
 export const applyOnDuty = (formData) =>
-  axios.post(`${ON_DUTY_API}/apply`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  axios.post(`${ON_DUTY_API}/apply`, formData);

@@ -1,6 +1,6 @@
 import db from "../config/db.js";
 import { getIO } from "../config/socket.js";
-
+import cloudinary from "../config/cloudinary.js";
 import { sendStudentNotification } from "./notifications/staffNotificationController.js";
 import { sendStaffNotification } from "./notifications/studentNotificationController.js";
 export const notifyNextApprovers = async (nextStage, reqRow, requestId, approverId) => {
@@ -177,7 +177,7 @@ export const cancelRequest = async (req, res) => {
 export const updateRequest = async (req, res) => {
   const { requestId } = req.params;
   const data = req.body;
-  const proofFile = req.file ? req.file.filename : null;
+const proofFileUrl = req.file ? req.file.path : null;
 
   try {
     const [rows] = await db.query(
@@ -191,6 +191,11 @@ export const updateRequest = async (req, res) => {
 
     if (!["SUBMITTED", "REJECTED"].includes(rows[0].status)) {
       return res.status(403).json({ message: "Cannot update after approval" });
+    }
+     
+
+    if (req.file) {
+      proofFileUrl = req.file.path; // already Cloudinary URL
     }
 
     if (rows[0].request_type === "ON_DUTY") {
@@ -216,7 +221,7 @@ export const updateRequest = async (req, res) => {
           data.eventName,
           data.college,
           data.location,
-          proofFile,
+          proofFileUrl,
           data.fromDate,
           data.toDate,
           totalDays,

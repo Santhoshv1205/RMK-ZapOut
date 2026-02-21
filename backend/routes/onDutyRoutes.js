@@ -1,20 +1,16 @@
 import express from "express";
-import multer from "multer";
+import parser from "../middlewares/cloudinaryUpload.js";
 import {
   applyOnDuty,
-  
-  getStudentProfile, // ✅ Import this
+  getStudentProfile,
 } from "../controllers/onDutycontroller.js";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
 
-// Apply On-Duty
-router.post("/apply", upload.single("proofFile"), applyOnDuty);
+// Apply On-Duty (file uploaded directly to Cloudinary)
+router.post("/apply", parser.single("proofFile"), applyOnDuty);
 
-
-
-// ✅ Get student profile
+// Get student profile
 router.get("/profile/:userId", getStudentProfile);
 
 export default router;

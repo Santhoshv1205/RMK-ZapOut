@@ -1,5 +1,5 @@
 import express from "express";
-import multer from "multer";
+import parser from "../middlewares/cloudinaryUpload.js";
 import {
   getAllStudentRequests,
   cancelRequest,
@@ -10,21 +10,23 @@ import {
 
 const router = express.Router();
 
-// Multer config for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "_" + file.originalname),
-});
-const upload = multer({ storage });
+/* ---------------- STUDENT ROUTES ---------------- */
 
+// Get all student requests
 router.get("/student/:userId", getAllStudentRequests);
-router.delete("/:requestId", cancelRequest);
-router.put("/:requestId", upload.single("proofFile"), updateRequest);
 
-// Get requests for logged-in staff
+// Cancel request
+router.delete("/:requestId", cancelRequest);
+
+// Update request (optional new proof file → Cloudinary)
+router.put("/:requestId", parser.single("proofFile"), updateRequest);
+
+/* ---------------- STAFF ROUTES ---------------- */
+
+// Get staff requests
 router.get("/staff/:staffId/:role", getStaffRequests);
 
-// Approve or reject a request
+// Approve / Reject
 router.put("/staff/request/:requestId/status", updateRequestStatus);
 
 export default router;

@@ -1,25 +1,29 @@
+// src/components/Admin_Dashboard/AdminDashboard.jsx
 import {
   Users,
   UserCheck,
   GraduationCap,
   Shield,
   Building2,
-  FileBarChart2,
-  Bell,
-  Activity,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import {
+  fetchDashboardStats,
+  fetchDepartments,
+} from "../../services/admindashboardService";
+
+/* =========================
+   SMALL UI CARDS
+========================= */
 const StatCard = ({ icon, title, value, color }) => (
   <div className="backdrop-blur-xl bg-white/10 border border-white/15 rounded-2xl p-5 flex items-center gap-4 hover:bg-white/15 transition">
-    <div
-      className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}
-    >
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
       {icon}
     </div>
     <div>
       <p className="text-sm text-red-500">{title}</p>
-      <h3 className="text-2xl font-bold text-white">{value}</h3>
+      <h3 className="text-2xl font-bold text-white">{value ?? "—"}</h3>
     </div>
   </div>
 );
@@ -31,14 +35,52 @@ const SectionCard = ({ title, children }) => (
   </div>
 );
 
+/* =========================
+   MAIN COMPONENT
+========================= */
 const AdminDashboard = () => {
   const [now, setNow] = useState(new Date());
+  const [stats, setStats] = useState(null);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* LIVE CLOCK */
+  /* ===== LIVE CLOCK ===== */
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  /* ===== LOAD DASHBOARD ===== */
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+
+        const [statsRes, deptRes] = await Promise.all([
+          fetchDashboardStats(),
+          fetchDepartments(),
+        ]);
+
+        setStats(statsRes.data.stats);
+        setDepartments(deptRes.data.data || []);
+
+      } catch (err) {
+        console.error("Dashboard load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-white text-lg">
+        Loading Dashboard...
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8">
@@ -54,13 +96,9 @@ const AdminDashboard = () => {
             System overview & administrative controls
           </p>
         </div>
-
-        {/* DATE & TIME (TOP RIGHT) */}
         <div className="text-right text-sm text-white/70">
           <p>{now.toDateString()}</p>
-          <p className="text-red-500 font-semibold">
-            {now.toLocaleTimeString()}
-          </p>
+          <p className="text-red-500 font-semibold">{now.toLocaleTimeString()}</p>
         </div>
       </div>
 
@@ -68,117 +106,54 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Users"
-          value="2,348"
+          value={stats?.totalUsers}
           icon={<Users className="text-white" />}
           color="bg-cyan-500/80"
         />
         <StatCard
           title="Students"
-          value="1,820"
+          value={stats?.totalStudents}
           icon={<GraduationCap className="text-white" />}
           color="bg-blue-500/80"
         />
         <StatCard
           title="Staff"
-          value="420"
+          value={stats?.totalStaff}
           icon={<UserCheck className="text-white" />}
           color="bg-emerald-500/80"
         />
         <StatCard
           title="Roles"
-          value="7"
+          value={stats?.totalRoles}
           icon={<Shield className="text-white" />}
           color="bg-purple-500/80"
         />
       </div>
 
-      {/* ================= MID SECTIONS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <SectionCard title="Departments Overview">
-          <div className="flex items-center justify-between mb-3 text-white/80">
-            <span className="flex items-center gap-2">
-              <Building2 size={18} /> Active Departments
-            </span>
-            <span className="font-semibold">12</span>
-          </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full w-[75%] bg-red-500 rounded-full"></div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Reports Summary">
-          <div className="space-y-3 text-white/80">
-            <div className="flex justify-between">
-              <span className="flex items-center gap-2">
-                <FileBarChart2 size={16} /> Gate Pass Reports
-              </span>
-              <span>1,024</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-2">
-                <FileBarChart2 size={16} /> On-Duty Reports
-              </span>
-              <span>786</span>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* ================= BOTTOM SECTIONS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <SectionCard title="Recent Notifications">
-          <ul className="space-y-3 text-white/80 text-sm">
-            <li className="flex justify-between">
-              <span>New student registered</span>
-              <Bell size={14} />
-            </li>
-            <li className="flex justify-between">
-              <span>Staff role updated</span>
-              <Bell size={14} />
-            </li>
-            <li className="flex justify-between">
-              <span>Department added</span>
-              <Bell size={14} />
-            </li>
+      {/* ================= DEPARTMENTS ================= */}
+      <SectionCard title="Department-wise Reports">
+        {departments.length === 0 ? (
+          <p className="text-white/80">No departments found</p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {departments.map((d) => (
+              <li
+                key={d.id}
+                className="flex justify-between items-center p-3 border border-white/10 rounded-xl hover:bg-white/5 transition"
+              >
+                <span className="font-semibold text-white">{d.name}</span>
+                <div className="flex gap-4 text-white/70 text-xs">
+                  <span>Students: {d.total_students}</span>
+                  <span>Staff: {d.total_staff}</span>
+                  <span className="text-blue-200">Gate Pass: {d.gate_pass_reports ?? 0}</span>
+                  <span className="text-green-200">On-Duty: {d.on_duty_reports ?? 0}</span>
+                </div>
+              </li>
+            ))}
           </ul>
-        </SectionCard>
+        )}
+      </SectionCard>
 
-        <SectionCard title="Audit Logs">
-          <ul className="space-y-3 text-white/80 text-sm">
-            <li className="flex justify-between">
-              <span>Admin updated permissions</span>
-              <Activity size={14} />
-            </li>
-            <li className="flex justify-between">
-              <span>HOD approved request</span>
-              <Activity size={14} />
-            </li>
-            <li className="flex justify-between">
-              <span>User account disabled</span>
-              <Activity size={14} />
-            </li>
-          </ul>
-        </SectionCard>
-
-        <SectionCard title="System Status">
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-white/80">
-              <span>Server</span>
-              <span className="text-red-500">Online</span>
-            </div>
-            <div className="flex justify-between text-white/80">
-              <span>Database</span>
-              <span className="text-red-500">Connected</span>
-            </div>
-            <div className="flex justify-between text-white/80">
-              <span>API Health</span>
-              <span className="text-red-500">Stable</span>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
     </div>
   );
 };

@@ -8,7 +8,7 @@ const OnDutyForm = () => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+const [previewUrl, setPreviewUrl] = useState(null);
   const [form, setForm] = useState({
     eventType: "",
     eventName: "",
@@ -40,6 +40,19 @@ const OnDutyForm = () => {
 
     loadProfile();
   }, [sessionUser.id]);
+  useEffect(() => {
+  if (!form.proof) {
+    setPreviewUrl(null);
+    return;
+  }
+
+  const url = URL.createObjectURL(form.proof);
+  setPreviewUrl(url);
+
+  return () => {
+    URL.revokeObjectURL(url);
+  };
+}, [form.proof]);
 
   // ================= HANDLE SUBMIT =================
   const handleSubmit = async () => {
@@ -59,7 +72,10 @@ const OnDutyForm = () => {
       fd.append("toDate", form.toDate);
 
       if (form.proof) fd.append("proofFile", form.proof);
-
+console.log("FormData to be sent:");
+  for (let pair of fd.entries()) {
+      console.log(pair[0], pair[1]);
+    }
       await applyOnDuty(fd);
       alert("On-Duty request submitted successfully");
 
@@ -144,8 +160,27 @@ const OnDutyForm = () => {
             onChange={(e) => setForm({ ...form, proof: e.target.files[0] })}
             className="block w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3"
           />
+         {previewUrl && (
+  <div className="mt-4">
+    {form.proof.type === "application/pdf" ? (
+      <iframe
+        src={previewUrl}
+        className="w-full h-96 rounded-xl border border-white/20"
+        title="PDF Preview"
+      />
+    ) : (
+      <img
+        src={previewUrl}
+        alt="Preview"
+        className="max-h-80 rounded-xl border border-white/20"
+      />
+    )}
+  </div>
+)}
         </Section>
+        
       )}
+      
 
       {/* ================= SUBMIT BUTTON ================= */}
       <button

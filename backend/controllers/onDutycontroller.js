@@ -1,6 +1,6 @@
 import db from "../config/db.js";
 import { getIO } from "../config/socket.js";
-
+import cloudinary from "../config/cloudinary.js";
 import { sendStudentNotification } from "./notifications/staffNotificationController.js";
 /* ================== STUDENT PROFILE ================== working fine */
 export const getStudentProfile = async (req, res) => {
@@ -32,7 +32,11 @@ export const getStudentProfile = async (req, res) => {
 export const applyOnDuty = async (req, res) => {
   const { userId, eventType, eventName, college, location, fromDate, toDate } =
     req.body;
-  const proofFile = req.file ? req.file.filename : null;
+let proofFileUrl = null;
+console.log("FILE:", req.file);
+if (req.file) {
+  proofFileUrl = req.file.path; // cloudinary URL
+}
 
   if (
     !userId ||
@@ -93,7 +97,7 @@ export const applyOnDuty = async (req, res) => {
         eventName,
         college,
         location,
-        proofFile,
+        proofFileUrl,
         fromDate,
         toDate,
         totalDays,
