@@ -1,6 +1,7 @@
 // src/components/OnDutyForm.jsx
 import { useEffect, useState } from "react";
 import { fetchStudentProfile, applyOnDuty } from "../../services/onDutyService.jsx";
+import { Trash2 } from "lucide-react";
 
 const OnDutyForm = () => {
   const sessionUser = JSON.parse(localStorage.getItem("user"));
@@ -154,12 +155,37 @@ console.log("FormData to be sent:");
       {/* ================= PROOF UPLOAD ================= */}
       {form.eventType !== "PLACEMENT" && (
         <Section title="Proof Upload">
-          <input
-            type="file"
-            accept=".pdf,.jpg,.png"
-            onChange={(e) => setForm({ ...form, proof: e.target.files[0] })}
-            className="block w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3"
-          />
+          <div className="flex items-center gap-3">
+
+  {/* FILE SELECT BUTTON */}
+  <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-white/20 px-5 py-3 rounded-xl">
+    Click here to select file
+    <input
+      type="file"
+      accept=".pdf,.jpg,.png"
+      className="hidden"
+      onChange={(e) => setForm({ ...form, proof: e.target.files[0] })}
+    />
+  </label>
+
+  {/* SHOW FILE NAME */}
+  {form.proof && (
+    <span className="text-sm text-gray-300">
+      {form.proof.name}
+    </span>
+  )}
+
+  {/* DELETE ICON */}
+  {form.proof && (
+    <button
+      onClick={() => setForm({ ...form, proof: null })}
+      className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg"
+    >
+      <Trash2 size={18} className="text-red-400" />
+    </button>
+  )}
+
+</div>
          {previewUrl && (
   <div className="mt-4">
   {form.proof && (

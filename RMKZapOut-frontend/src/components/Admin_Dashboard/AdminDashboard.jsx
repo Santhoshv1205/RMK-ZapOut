@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, UserCheck, GraduationCap, Shield, X } from "lucide-react";
+import { Users, UserCheck, GraduationCap, Shield, X, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -296,12 +296,68 @@ return (
 
     {/* UPLOAD CALENDAR */}
     <SectionCard title="Upload Academic Calendar">
-      <div className="flex gap-4">
-        <input type="file" onChange={(e) => setFile(e.target.files[0])}/>
-        <button onClick={handleUpload} className="bg-red-500 px-4 py-2 text-white rounded">
-          {uploading ? "Uploading..." : "Upload"}
-        </button>
-      </div>
+     <div className="space-y-4">
+
+  {/* FILE SELECT + NAME + DELETE */}
+  <div className="flex items-center gap-3">
+
+    {/* SELECT BUTTON */}
+    <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-white/20 px-5 py-3 rounded-xl">
+      Click here to select file
+      <input
+        type="file"
+        className="hidden"
+        onChange={(e) => setFile(e.target.files[0])}
+      />
+    </label>
+
+    {/* FILE NAME */}
+    {file && (
+      <span className="text-sm text-gray-300">
+        {file.name}
+      </span>
+    )}
+
+    {/* DELETE FILE */}
+    {file && (
+      <button
+        onClick={() => setFile(null)}
+        className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg"
+      >
+        <Trash2 size={18} className="text-red-400" />
+      </button>
+    )}
+
+    {/* UPLOAD BUTTON */}
+    <button
+      onClick={handleUpload}
+      className="bg-red-500 px-4 py-2 text-white rounded"
+    >
+      {uploading ? "Uploading..." : "Upload"}
+    </button>
+
+  </div>
+
+  {/* OPTIONAL FILE PREVIEW (image/pdf only) */}
+  {file && (
+    <div>
+      {file.type === "application/pdf" ? (
+        <iframe
+          src={URL.createObjectURL(file)}
+          className="w-full h-96 rounded-xl border border-white/20"
+          title="PDF Preview"
+        />
+      ) : file.type.startsWith("image/") ? (
+        <img
+          src={URL.createObjectURL(file)}
+          alt="Preview"
+          className="max-h-80 rounded-xl border border-white/20"
+        />
+      ) : null}
+    </div>
+  )}
+
+</div>
 
       <div className="mt-6">
         {calendars.map((c) => (
