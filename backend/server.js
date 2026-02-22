@@ -18,7 +18,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import historyRoutes from "./routes/historyRoutes.js";
 import { initSocket } from "./config/socket.js";
 import admindashboardRoutes from "./routes/admindashboardRoutes.js";
-
+import staffDashboardRoutes from "./routes/staffDashboardRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -41,6 +41,8 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin/dashboard", admindashboardRoutes);
+app.use("/api/staff/dashboard", staffDashboardRoutes);
+
 // --- HTTP + Socket.io Setup ---
 const PORT = process.env.PORT || 5000;
 
