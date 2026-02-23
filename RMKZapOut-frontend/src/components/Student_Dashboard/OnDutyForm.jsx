@@ -9,7 +9,10 @@ const OnDutyForm = () => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  const [submitting, setSubmitting] = useState(false); // ✅ added
+
   const [form, setForm] = useState({
     eventType: "",
     eventName: "",
@@ -41,27 +44,48 @@ const [previewUrl, setPreviewUrl] = useState(null);
 
     loadProfile();
   }, [sessionUser.id]);
+
   useEffect(() => {
-  if (!form.proof) {
-    setPreviewUrl(null);
-    return;
-  }
+    if (!form.proof) {
+      setPreviewUrl(null);
+      return;
+    }
 
-  const url = URL.createObjectURL(form.proof);
-  setPreviewUrl(url);
+    const url = URL.createObjectURL(form.proof);
+    setPreviewUrl(url);
 
-  return () => {
-    URL.revokeObjectURL(url);
-  };
-}, [form.proof]);
+    return () => URL.revokeObjectURL(url);
+  }, [form.proof]);
 
   // ================= HANDLE SUBMIT =================
   const handleSubmit = async () => {
     try {
-      if (!form.eventType || !form.eventName || !form.organization || !form.location || !form.fromDate || !form.toDate) {
+      // event validation
+      if (
+        !form.eventType ||
+        !form.eventName ||
+        !form.organization ||
+        !form.location ||
+        !form.fromDate ||
+        !form.toDate
+      ) {
         alert("Please fill all event details.");
         return;
       }
+
+      // proof validation
+      if (form.eventType !== "PLACEMENT" && !form.proof) {
+        alert("Proof upload is required.");
+        return;
+      }
+
+      // ✅ file size limit (5MB)
+      if (form.proof && form.proof.size > 5 * 1024 * 1024) {
+        alert("File must be less than 5MB");
+        return;
+      }
+
+      setSubmitting(true); // ✅ start loading
 
       const fd = new FormData();
       fd.append("userId", sessionUser.id);
@@ -73,11 +97,9 @@ const [previewUrl, setPreviewUrl] = useState(null);
       fd.append("toDate", form.toDate);
 
       if (form.proof) fd.append("proofFile", form.proof);
-console.log("FormData to be sent:");
-  for (let pair of fd.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+
       await applyOnDuty(fd);
+
       alert("On-Duty request submitted successfully");
 
       setForm({
@@ -91,6 +113,8 @@ console.log("FormData to be sent:");
       });
     } catch (err) {
       alert(err.response?.data?.message || "Submission failed");
+    } finally {
+      setSubmitting(false); // ✅ stop loading
     }
   };
 
@@ -156,68 +180,57 @@ console.log("FormData to be sent:");
       {form.eventType !== "PLACEMENT" && (
         <Section title="Proof Upload">
           <div className="flex items-center gap-3">
+            <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-white/20 px-5 py-3 rounded-xl">
+              Click here to select file
+              <input
+                type="file"
+                accept=".pdf,.jpg,.png"
+                className="hidden"
+                onChange={(e) => setForm({ ...form, proof: e.target.files[0] })}
+              />
+            </label>
 
-  {/* FILE SELECT BUTTON */}
-  <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 border border-white/20 px-5 py-3 rounded-xl">
-    Click here to select file
-    <input
-      type="file"
-      accept=".pdf,.jpg,.png"
-      className="hidden"
-      onChange={(e) => setForm({ ...form, proof: e.target.files[0] })}
-    />
-  </label>
+            {form.proof && (
+              <span className="text-sm text-gray-300">{form.proof.name}</span>
+            )}
 
-  {/* SHOW FILE NAME */}
-  {form.proof && (
-    <span className="text-sm text-gray-300">
-      {form.proof.name}
-    </span>
-  )}
+            {form.proof && (
+              <button
+                onClick={() => setForm({ ...form, proof: null })}
+                className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg"
+              >
+                <Trash2 size={18} className="text-red-400" />
+              </button>
+            )}
+          </div>
 
-  {/* DELETE ICON */}
-  {form.proof && (
-    <button
-      onClick={() => setForm({ ...form, proof: null })}
-      className="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg"
-    >
-      <Trash2 size={18} className="text-red-400" />
-    </button>
-  )}
-
-</div>
-         {previewUrl && (
-  <div className="mt-4">
-  {form.proof && (
-  <div className="mt-4">
-    {form.proof.type === "application/pdf" ? (
-      <iframe
-        src={URL.createObjectURL(form.proof)}
-        className="w-full h-96 rounded-xl border border-white/20"
-        title="PDF Preview"
-      />
-    ) : (
-      <img
-        src={URL.createObjectURL(form.proof)}
-        alt="Preview"
-        className="max-h-80 rounded-xl border border-white/20"
-      />
-    )}
-  </div>
-)}
-  </div>
-)}
+          {previewUrl && form.proof && (
+            <div className="mt-4">
+              {form.proof.type === "application/pdf" ? (
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-96 rounded-xl border border-white/20"
+                  title="PDF Preview"
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-h-80 rounded-xl border border-white/20"
+                />
+              )}
+            </div>
+          )}
         </Section>
-        
       )}
-      
 
       {/* ================= SUBMIT BUTTON ================= */}
       <button
         onClick={handleSubmit}
-        className="mt-6 px-8 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:scale-105 transition"
+        disabled={submitting}
+        className="mt-6 px-8 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:scale-105 transition disabled:opacity-50"
       >
-        Submit On-Duty
+        {submitting ? "Submitting..." : "Submit On-Duty"}
       </button>
     </div>
   );
