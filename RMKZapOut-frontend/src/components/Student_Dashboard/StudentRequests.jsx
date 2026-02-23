@@ -31,6 +31,8 @@ const StudentRequests = () => {
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
   const [editFile, setEditFile] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  
 
   const loadRequests = async () => {
     try {
@@ -249,6 +251,49 @@ return (
                     <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate : r.od_from_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
                     <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.od_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
                     <Card label="Total Days" value={r.od_total_days} />
+                    {/* PROOF FILE */}
+<div className="bg-white/10 rounded-xl p-4 col-span-2">
+  <p className="text-xs text-gray-400 mb-2">Proof File</p>
+
+  {/* View Existing File */}
+  {r.proof_file && !isEditing && (
+    <button
+      onClick={() => setPreviewFile(r.proof_file)}
+      className="flex items-center gap-2 text-[#00d3d1] hover:underline"
+    >
+      <FileText size={16} />
+      View Uploaded Proof
+    </button>
+  )}
+
+  {/* Edit Mode File Upload */}
+  {isEditing && (
+    <div className="flex flex-col gap-3">
+      {r.proof_file && (
+        <button
+          type="button"
+          onClick={() => setPreviewFile(r.proof_file)}
+          className="text-sm text-[#00d3d1] underline"
+        >
+          Preview Current File
+        </button>
+      )}
+
+      <input
+        type="file"
+        name="proofFile"
+        onChange={handleChange}
+        className="text-sm bg-white/5 border border-white/20 rounded p-2"
+      />
+
+      {editFile && (
+        <p className="text-xs text-green-400">
+          New file selected: {editFile.name}
+        </p>
+      )}
+    </div>
+  )}
+</div>
                   </>
                 )}
                 {r.request_type === "GATE_PASS" && (
@@ -259,7 +304,9 @@ return (
                     <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate : r.gp_from_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
                     <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.gp_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
                     <Card label="Total Days" value={r.gp_total_days} />
+                    
                   </>
+                  
                 )}
 
               </div>
@@ -340,6 +387,43 @@ return (
         );
       })}
     </div>
+    {previewFile && (
+  <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+    
+    <div className="relative w-[95%] h-[90vh] bg-[#0f172a] rounded-2xl border border-white/20 shadow-2xl p-6 flex flex-col">
+      
+      {/* CLOSE BUTTON */}
+     <button
+  onClick={() => setPreviewFile(null)}
+  className="absolute top-4 right-4 text-white hover:text-red-400"
+>
+  <X size={24} />
+</button>
+
+      <h2 className="text-lg font-semibold mb-4 text-[#00d3d1]">
+        Proof Preview
+      </h2>
+
+      {/* CONTENT AREA */}
+      <div className="flex-1 overflow-auto flex items-center justify-center">
+        {previewFile.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+          <img
+            src={previewFile}
+            alt="Proof"
+            className="max-h-full max-w-full object-contain rounded-xl"
+          />
+        ) : (
+          <iframe
+            src={previewFile}
+            title="Proof Document"
+            className="w-full h-full rounded-xl"
+          />
+        )}
+      </div>
+
+    </div>
+  </div>
+)}
   </div>
 );
 
