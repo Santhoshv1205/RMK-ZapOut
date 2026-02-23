@@ -228,35 +228,59 @@ const proofFileUrl = req.file ? req.file.path : null;
           requestId,
         ],
       );
-    } else {
-      const totalDays =
-        Math.ceil(
-          (new Date(data.toDate) - new Date(data.fromDate)) /
-            (1000 * 60 * 60 * 24),
-        ) + 1;
+    }  else {
 
-      await db.query(
-        `UPDATE gate_pass_details SET
-          reason = ?,
-          out_time = ?,
-          in_time = ?,
-          from_date = ?,
-          to_date = ?,
-          total_days = ?
-        WHERE request_id = ?`,
-        [
-          data.reason || null,
-          data.outTime || null,
-          data.inTime || null,
-          data.fromDate || null,
-          data.toDate || null,
-          totalDays || null,
-          requestId,
-        ],
-      );
-    }
+  // 🔒 Convert "null" string to actual NULL
+  const safeOutTime =
+    !data.outTime || data.outTime === "null"
+      ? null
+      : data.outTime;
 
-    res.json({ message: "Request updated successfully" });
+  const safeInTime =
+    !data.inTime || data.inTime === "null"
+      ? null
+      : data.inTime;
+
+  const safeFromDate =
+    !data.fromDate || data.fromDate === "null"
+      ? null
+      : data.fromDate;
+
+  const safeToDate =
+    !data.toDate || data.toDate === "null"
+      ? null
+      : data.toDate;
+
+  let totalDays = null;
+
+  if (safeFromDate && safeToDate) {
+    totalDays =
+      Math.ceil(
+        (new Date(safeToDate) - new Date(safeFromDate)) /
+          (1000 * 60 * 60 * 24)
+      ) + 1;
+  }
+
+  await db.query(
+    `UPDATE gate_pass_details SET
+      reason = ?,
+      out_time = ?,
+      in_time = ?,
+      from_date = ?,
+      to_date = ?,
+      total_days = ?
+    WHERE request_id = ?`,
+    [
+      data.reason || null,
+      safeOutTime,
+      safeInTime,
+      safeFromDate,
+      safeToDate,
+      totalDays,
+      requestId,
+    ],
+  );
+}  res.json({ message: "Request updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
