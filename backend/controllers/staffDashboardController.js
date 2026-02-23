@@ -24,6 +24,88 @@ export const getStaffDashboardStats = async (req, res) => {
       staffRow = rows[0];
     }
 
+
+else if (role === "HOD") {
+  const [rows] = await db.query(
+    `SELECT h.id, h.department_id, h.academic_type,
+            d.display_name AS department_name
+     FROM hods h
+     LEFT JOIN departments d ON d.id = h.department_id
+     WHERE h.user_id = ?`,
+    [staffId]
+  );
+
+  if (!rows.length)
+    return res.status(404).json({ message: "HOD not found" });
+
+  const hod = rows[0];
+
+  // ✅ Decide allowed years
+  let allowedYears = [];
+
+  if (hod.academic_type === "BASE_DEPT") {
+    allowedYears = [1];
+  } else if (hod.academic_type === "CORE_DEPT") {
+    allowedYears = [2, 3, 4];
+  }
+
+  // ✅ Year-wise Student Stats
+  const [yearStats] = await db.query(
+    `
+    SELECT 
+      s.year_of_study AS year,
+      COUNT(*) AS total_students,
+      SUM(CASE WHEN s.student_type='HOSTELLER' THEN 1 ELSE 0 END) AS total_hostellers,
+      SUM(CASE WHEN s.student_type='DAYSCHOLAR' THEN 1 ELSE 0 END) AS total_dayscholars
+    FROM students s
+    WHERE s.department_id = ?
+      AND s.year_of_study IN (?)
+    GROUP BY s.year_of_study
+    ORDER BY s.year_of_study
+    `,
+    [hod.department_id, allowedYears]
+  );
+
+  // ✅ Total Staff in Department (Counsellors + Coordinators)
+  const [[staffCount]] = await db.query(
+    `
+    SELECT 
+      (
+        (SELECT COUNT(*) FROM counsellors WHERE department_id = ?) +
+        (SELECT COUNT(*) FROM coordinators WHERE department_id = ?)
+      ) AS total_staff
+    `,
+    [hod.department_id, hod.department_id]
+  );
+
+  // ✅ Academic Calendar
+  const [cal] = await db.query(
+    `SELECT id, filename, cloud_url, uploaded_at
+     FROM academic_calendars
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  const stats = yearStats.map(r => ({
+    year: `${r.year} Year`,
+    total: Number(r.total_students),
+    counselling: 0, // Not needed for HOD
+    counselling_hostellers: Number(r.total_hostellers),
+    counselling_dayscholars: Number(r.total_dayscholars),
+    total_staff: Number(staffCount.total_staff)
+  }));
+
+  return res.json({
+    staff: {
+      role,
+      department: hod.department_name,
+      academic_type: hod.academic_type
+    },
+    stats,
+    academicCalendar: cal
+  });
+}
+
     else if (role === "COORDINATOR") {
       const [rows] = await db.query(
         `SELECT id AS staff_table_id, department_id
@@ -98,6 +180,7 @@ export const getStaffDashboardStats = async (req, res) => {
 
   } catch (err) {
     console.error("Dashboard Stats Error:", err);
+    
     res.status(500).json({ message: "Server error" });
   }
 };
