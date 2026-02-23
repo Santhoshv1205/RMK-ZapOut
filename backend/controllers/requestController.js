@@ -177,7 +177,7 @@ export const cancelRequest = async (req, res) => {
 export const updateRequest = async (req, res) => {
   const { requestId } = req.params;
   const data = req.body;
-const proofFileUrl = req.file ? req.file.path : null;
+let proofFileUrl = req.file ? req.file.path : null;
 
   try {
     const [rows] = await db.query(

@@ -252,10 +252,11 @@ return (
                     <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.od_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
                     <Card label="Total Days" value={r.od_total_days} />
                     {/* PROOF FILE */}
-{r.proof_file && (
-  <div className="bg-white/10 rounded-xl p-4 col-span-2">
-    <p className="text-xs text-gray-400 mb-2">Proof File</p>
+<div className="bg-white/10 rounded-xl p-4 col-span-2">
+  <p className="text-xs text-gray-400 mb-2">Proof File</p>
 
+  {/* View Existing File */}
+  {r.proof_file && !isEditing && (
     <button
       onClick={() => setPreviewFile(r.proof_file)}
       className="flex items-center gap-2 text-[#00d3d1] hover:underline"
@@ -263,8 +264,36 @@ return (
       <FileText size={16} />
       View Uploaded Proof
     </button>
-  </div>
-)}
+  )}
+
+  {/* Edit Mode File Upload */}
+  {isEditing && (
+    <div className="flex flex-col gap-3">
+      {r.proof_file && (
+        <button
+          type="button"
+          onClick={() => setPreviewFile(r.proof_file)}
+          className="text-sm text-[#00d3d1] underline"
+        >
+          Preview Current File
+        </button>
+      )}
+
+      <input
+        type="file"
+        name="proofFile"
+        onChange={handleChange}
+        className="text-sm bg-white/5 border border-white/20 rounded p-2"
+      />
+
+      {editFile && (
+        <p className="text-xs text-green-400">
+          New file selected: {editFile.name}
+        </p>
+      )}
+    </div>
+  )}
+</div>
                   </>
                 )}
                 {r.request_type === "GATE_PASS" && (
