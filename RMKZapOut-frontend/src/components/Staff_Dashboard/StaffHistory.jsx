@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   FileText,
   Download,
@@ -38,14 +40,15 @@ const StaffHistory = () => {
 
     fetchHistory();
   }, [userId]);
-// Helper to format ISO date string to 'YYYY-MM-DD'
-const formatDate = (isoString) => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+
+  // Helper to format ISO date string to 'YYYY-MM-DD'
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   /* ================= FILTER LOGIC ================= */
   const filteredData = history.filter((item) => {
@@ -65,6 +68,80 @@ const formatDate = (isoString) => {
         (!type || h.requestType === type) &&
         (!status ? h.status === "Pending" : h.status === status)
     ).length;
+
+  /* ================= CSV DOWNLOAD ================= */
+  const downloadCSV = () => {
+    if (!filteredData.length) return alert("No data to export");
+
+    const headers = [
+      "Student",
+      "Type",
+      "Event",
+      "From Date",
+      "To Date",
+      "Total Days",
+      "Status",
+      "Remarks",
+    ];
+
+    const rows = filteredData.map((r) => [
+      r.studentName,
+      r.requestType,
+      r.event,
+      r.fromDate ? formatDate(r.fromDate) : "",
+      r.toDate ? formatDate(r.toDate) : "",
+      r.totalDays || "",
+      r.status,
+      r.remarks || "",
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "staff_history.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  /* ================= PDF DOWNLOAD ================= */
+  const downloadPDF = () => {
+    if (!filteredData.length) return alert("No data to export");
+
+    const doc = new jsPDF();
+    doc.text("Staff Request History", 14, 10);
+
+    autoTable(doc, {
+      startY: 20,
+      head: [
+        [
+          "Student",
+          "Type",
+          "Event",
+          "From",
+          "To",
+          "Days",
+          "Status",
+          "Remarks",
+        ],
+      ],
+      body: filteredData.map((r) => [
+        r.studentName,
+        r.requestType,
+        r.event,
+        r.fromDate ? formatDate(r.fromDate) : "",
+        r.toDate ? formatDate(r.toDate) : "",
+        r.totalDays || "",
+        r.status,
+        r.remarks || "",
+      ]),
+    });
+
+    doc.save("staff_history.pdf");
+  };
 
   /* ================= UI STATES ================= */
   if (loading)
@@ -87,12 +164,10 @@ const formatDate = (isoString) => {
 
       {/* COUNT CARDS */}
       <div className="grid grid-cols-6 gap-4 mb-6">
-        {/* Gate Pass */}
         <StatCard title="Gate Pass Pending" value={count("Gate Pass", "Pending")} color="yellow"/>
         <StatCard title="Gate Pass Approved" value={count("Gate Pass", "Approved")} color="green"/>
         <StatCard title="Gate Pass Rejected" value={count("Gate Pass", "Rejected")} color="red"/>
 
-        {/* On-Duty */}
         <StatCard title="On-Duty Pending" value={count("On-Duty", "Pending")} color="yellow"/>
         <StatCard title="On-Duty Approved" value={count("On-Duty", "Approved")} color="green"/>
         <StatCard title="On-Duty Rejected" value={count("On-Duty", "Rejected")} color="red"/>
@@ -120,10 +195,17 @@ const formatDate = (isoString) => {
         </div>
 
         <div className="flex gap-2">
-          <button className="glass-btn flex items-center gap-1">
+          <button
+            onClick={downloadCSV}
+            className="glass-btn flex items-center gap-1 cursor-pointer"
+          >
             <Download size={16} /> CSV
           </button>
-          <button className="glass-btn flex items-center gap-1">
+
+          <button
+            onClick={downloadPDF}
+            className="glass-btn flex items-center gap-1 cursor-pointer"
+          >
             <FileText size={16} /> PDF
           </button>
         </div>
@@ -160,13 +242,16 @@ const formatDate = (isoString) => {
                   <td className="p-3">{req.studentName}</td>
                   <td className="p-3">{req.requestType}</td>
                   <td className="p-3">{req.event}</td>
-                 <td className="p-3">
-  {req.fromDate
-    ? formatDate(req.fromDate) + (req.toDate ? ` → ${formatDate(req.toDate)}` : "")
-    : "-"}
-</td>
+
+                  <td className="p-3">
+                    {req.fromDate
+                      ? formatDate(req.fromDate) +
+                        (req.toDate ? ` → ${formatDate(req.toDate)}` : "")
+                      : "-"}
+                  </td>
 
                   <td className="p-3">{req.totalDays || "-"}</td>
+
                   <td className="p-3">
                     {req.status === "Approved" ? (
                       <span className="text-green-400 flex items-center gap-1">
@@ -182,6 +267,7 @@ const formatDate = (isoString) => {
                       </span>
                     )}
                   </td>
+
                   <td className="p-3">{req.remarks || "-"}</td>
                 </tr>
               ))

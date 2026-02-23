@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { fetchStaffDashboardStats } from "../../services/staffDashboardService";
 import { fetchStaffProfile } from "../../services/staffProfileService";
 
-/* ✅ ADDED — same as admin calendar */
 import * as XLSX from "xlsx";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -28,19 +27,20 @@ const StaffDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* ✅ ADDED — calendar states */
   const [allEvents, setAllEvents] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedYear, setSelectedYear] = useState("1");
-  const calendarRef = useRef(null);
 
-  /* ✅ Live Clock */
+  const calendarRef = useRef(null);
+  const calendarTableRef = useRef(null);
+
+  /* LIVE CLOCK */
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  /* ✅ Load Dashboard Data */
+  /* LOAD DASHBOARD */
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) {
@@ -75,21 +75,47 @@ const StaffDashboard = () => {
     loadDashboard();
   }, []);
 
-  /* ✅ Year filter */
+  /* YEAR FILTER */
   useEffect(() => {
     setCalendarEvents(allEvents.filter((e) => e.year === selectedYear));
   }, [selectedYear, allEvents]);
 
-  /* ✅ AUTO LOAD FIRST CALENDAR ON PAGE LOAD */
+  /* AUTO LOAD FIRST CALENDAR */
   useEffect(() => {
     if (academicCalendars.length > 0) {
       loadCalendarEvents(academicCalendars[0].cloud_url);
     }
   }, [academicCalendars]);
 
-  /* ==========================================================
-     SAME EXCEL PARSER AS ADMIN (NO CHANGE)
-     ========================================================== */
+  /* SCROLL */
+  const scrollToCalendar = () => {
+    calendarTableRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  /* DOWNLOAD */
+  const downloadCalendar = async (fileUrl, filename) => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename || "academic-calendar.xlsx";
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  };
+
+  /* EXCEL PARSER — UNCHANGED */
   const loadCalendarEvents = async (fileUrl) => {
     try {
       const res = await fetch(fileUrl);
@@ -172,16 +198,18 @@ const StaffDashboard = () => {
             `${currentYear}-${currentMonth}-${String(dateCell).padStart(2, "0")}`;
 
           const text = String(textCell).toLowerCase();
-          let color = "#22c55e";
+          let color = "#22c55e"; // green (default events)
 
-          if (text.includes("holiday")) color = "#ef4444";
-          else if (
-            text.includes("exam") ||
-            text.includes("assessment") ||
-            text.includes("review") ||
-            text.includes("project")
-          )
-            color = "#3b82f6";
+if (text.includes("holiday")) {
+  color = "#ef4444"; // red
+} else if (
+  text.includes("exam") ||
+  text.includes("assessment") ||
+  text.includes("review") ||
+  text.includes("project")
+) {
+  color = "#3b82f6"; // blue
+}
 
           events.push({
             title: textCell,
@@ -206,168 +234,205 @@ const StaffDashboard = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617] min-h-screen text-white p-8">
-      
-      <h1 className="text-3xl font-bold">
-        Welcome to{" "}
-        <span className="text-[#53cf57]">
-          {staff?.role || "Staff"}
-        </span>{" "}
-        Dashboard
-      </h1>
+    <div className="min-h-screen text-white bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617]">
+      <main className="px-8 py-6">
 
-      <div className="flex justify-between mt-6">
-        <div>
-          <p className={`text-lg font-semibold ${GREEN}`}>
-            Hello, {staff?.username || "User"}
-          </p>
-          <p className="text-white/60 text-sm">
-            {staff?.role} | {staff?.department}
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold">
+            Welcome to{" "}
+            <span className="text-[#53cf57]">
+              {staff?.role || "Staff"} Dashboard
+            </span>
+          </h1>
+
+          <p className="text-gray-300 mt-2 max-w-3xl">
+            Manage student counselling, monitor academic activities, track
+            student engagement, and stay updated with institutional schedules.
           </p>
         </div>
 
-        <div className="text-right">
-          <p className="text-white/60">{now.toDateString()}</p>
-          <p className={GREEN}>{now.toLocaleTimeString()}</p>
-        </div>
-      </div>
+        {/* GREETING */}
+        <div className="flex justify-between items-start mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#53cf57]/20 flex items-center justify-center">
+              <User className="text-[#53cf57]" />
+            </div>
 
-      {loading && <p className="mt-8">Loading dashboard...</p>}
-      {error && <p className="text-red-500 mt-8">{error}</p>}
+            <div>
+              <h2 className="text-2xl font-semibold">
+                Hello, <span className="text-[#53cf57]">{staff?.username}</span>
+              </h2>
 
-      {!loading && dashboardStats.length === 0 && (
-        <div className="mt-10 text-white/70">No data available.</div>
-      )}
-
-      {!loading && staff?.role === "HOD" &&
-        dashboardStats.map((year) => (
-          <div key={year.year} className="mt-10">
-            <h2 className={`text-xl font-semibold mb-6 ${GREEN}`}>
-              {year.year}
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard title="Total Staff" value={year.total_staff} icon={<User size={28} />} color="bg-green-600/40" />
-              <StatCard title="Total Students" value={year.total} icon={<Users size={28} />} color="bg-cyan-600/40" />
-              <StatCard title="Total Hostellers" value={year.counselling_hostellers} icon={<Home size={28} />} color="bg-yellow-600/40" />
-              <StatCard title="Total Day Scholars" value={year.counselling_dayscholars} icon={<School size={28} />} color="bg-purple-600/40" />
+              <p className="text-sm text-gray-300 mt-1">
+                {staff?.role} | {staff?.department}
+              </p>
             </div>
           </div>
-        ))}
 
-      {!loading && staff?.role !== "HOD" &&
-        dashboardStats
-          .filter(
-            (year) =>
-              year.counselling > 0 ||
-              year.counselling_hostellers > 0 ||
-              year.counselling_dayscholars > 0
-          )
-          .map((year) => (
-            <div key={year.year} className="mt-10">
+          <div className="text-right text-sm text-gray-300">
+            <p>{now.toDateString()}</p>
+            <p className="text-[#53cf57] font-semibold">
+              {now.toLocaleTimeString()}
+            </p>
+          </div>
+        </div>
+
+        {loading && <p className="mt-8">Loading dashboard...</p>}
+        {error && <p className="text-red-500 mt-8">{error}</p>}
+
+        {!loading && dashboardStats.length === 0 && (
+          <div className="mt-10 text-white/70">No data available.</div>
+        )}
+
+        {/* HOD STATS */}
+        {!loading && staff?.role === "HOD" &&
+          dashboardStats.map((year) => (
+            <div key={year.year} className="mb-12">
               <h2 className={`text-xl font-semibold mb-6 ${GREEN}`}>
                 {year.year}
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="Total Staff" value={year.total_staff} icon={<User size={28} />} color="bg-green-600/40" />
                 <StatCard title="Total Students" value={year.total} icon={<Users size={28} />} color="bg-cyan-600/40" />
-                <StatCard title="Your Counselling Students" value={year.counselling} icon={<User size={28} />} color="bg-green-600/40" />
-                <StatCard title="Your Counselling Hostellers" value={year.counselling_hostellers} icon={<Home size={28} />} color="bg-yellow-600/40" />
-                <StatCard title="Your Counselling Day Scholars" value={year.counselling_dayscholars} icon={<School size={28} />} color="bg-purple-600/40" />
+                <StatCard title="Total Hostellers" value={year.counselling_hostellers} icon={<Home size={28} />} color="bg-yellow-600/40" />
+                <StatCard title="Total Day Scholars" value={year.counselling_dayscholars} icon={<School size={28} />} color="bg-purple-600/40" />
               </div>
             </div>
           ))}
 
-      {!loading && academicCalendars.length > 0 && (
-        <div className="mt-14">
-          <h2 className={`text-xl font-semibold ${GREEN}`}>
-            Academic Calendar
-          </h2>
+        {/* NON HOD STATS */}
+        {!loading && staff?.role !== "HOD" &&
+          dashboardStats
+            .filter(
+              (year) =>
+                year.counselling > 0 ||
+                year.counselling_hostellers > 0 ||
+                year.counselling_dayscholars > 0
+            )
+            .map((year) => (
+              <div key={year.year} className="mb-12">
+                <h2 className={`text-xl font-semibold mb-6 ${GREEN}`}>
+                  {year.year}
+                </h2>
 
-          <div className="space-y-3 mt-4">
-            {academicCalendars.map((file) => (
-              <div key={file.id}>
-                <button
-                  onClick={() => loadCalendarEvents(file.cloud_url)}
-                  className="underline text-white/80 hover:text-white"
-                >
-                  {file.filename}
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatCard title="Total Students" value={year.total} icon={<Users size={28} />} color="bg-cyan-600/40" />
+                  <StatCard title="Your Counselling Students" value={year.counselling} icon={<User size={28} />} color="bg-green-600/40" />
+                  <StatCard title="Your Counselling Hostellers" value={year.counselling_hostellers} icon={<Home size={28} />} color="bg-yellow-600/40" />
+                  <StatCard title="Your Counselling Day Scholars" value={year.counselling_dayscholars} icon={<School size={28} />} color="bg-purple-600/40" />
+                </div>
               </div>
             ))}
-          </div>
 
-          {allEvents.length > 0 && (
-            <div className="mt-6">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-gray-800 text-white p-2 rounded"
-              >
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
-              </select>
+        {/* CALENDAR MODULE */}
+        {!loading && academicCalendars.length > 0 && (
+<div
+  ref={calendarTableRef}
+  className="bg-black/40 backdrop-blur-2xl border border-white/25 rounded-2xl shadow-2xl p-6 mt-30 mb-12"
+>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-[#53cf57]">
+                <School size={20} />
+                Academic Calendar
+              </h2>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() =>
+                    downloadCalendar(
+                      academicCalendars[0].cloud_url,
+                      academicCalendars[0].filename
+                    )
+                  }
+                  className="px-4 py-1.5 rounded-lg bg-green-500 hover:bg-green-400 text-white text-sm font-semibold shadow-lg shadow-green-500/40 transition"
+                >
+                  Download
+                </button>
+
+                <button
+                  onClick={() => {
+                    loadCalendarEvents(academicCalendars[0].cloud_url);
+                    setTimeout(scrollToCalendar, 400);
+                  }}
+                  className="px-4 py-1.5 rounded-lg bg-green-500 hover:bg-green-400 text-white text-sm font-semibold shadow-lg shadow-green-500/40 transition"
+                >
+                  View
+                </button>
+              </div>
             </div>
-          )}
 
-          {calendarEvents.length > 0 && (
-  <div className="mt-6">
+            <ul className="space-y-4">
+              {academicCalendars.map((file) => (
+                <li key={file.id}>
+                  <span
+                    onClick={() => loadCalendarEvents(file.cloud_url)}
+                    className="underline text-gray-300 hover:text-white cursor-pointer"
+                  >
+                    {file.filename}
+                  </span>
+                </li>
+              ))}
+            </ul>
 
-              <FullCalendar
+            {allEvents.length > 0 && (
+              <div className="mt-6">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="bg-gray-800 text-white p-2 rounded"
+                >
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
+                </select>
+              </div>
+            )}
+
+            {calendarEvents.length > 0 && (
+              <div ref={calendarTableRef} className="mt-6">
+                <FullCalendar
   plugins={[dayGridPlugin]}
   initialView="dayGridMonth"
   height="650px"
-
-  headerToolbar={{
-    left: "",
-    center: "title",
-    right: "currentDate prev,next"
-  }}
-
-  customButtons={{
-  currentDate: {
-    text: now.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }),
-    click: () => {}
-  }
-}}
-
   events={calendarEvents}
-                eventDidMount={(info) => {
-                  if (info.event.display === "background") {
-                    info.el.style.opacity = "0.95";
-                  }
-                }}
-                eventContent={(arg) => (
-                  <div
-                    style={{
-                      height: "100%",
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      whiteSpace: "normal",
-                      wordBreak: "break-word",
-                      fontSize: "12px",
-                      fontWeight: "700",
-                      color: "black",
-                      padding: "6px",
-                    }}
-                  >
-                    {arg.event.title}
-                  </div>
-                )}
-              />
-            </div>
-          )}
-        </div>
-      )}
+  buttonText={{
+    today: now.toDateString(),
+  }}
+  eventDidMount={(info) => {
+    if (info.event.display === "background") {
+      info.el.style.opacity = "0.95";
+    }
+  }}
+  eventContent={(arg) => (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        fontSize: "12px",
+        fontWeight: "700",
+        color: "white",
+        padding: "6px",
+      }}
+    >
+      {arg.event.title}
+    </div>
+  )}
+/>
+              </div>
+            )}
+          </div>
+        )}
+
+      </main>
     </div>
   );
 };
