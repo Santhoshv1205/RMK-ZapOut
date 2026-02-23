@@ -49,8 +49,7 @@ const AdminLayout = () => {
     <div className="flex min-h-screen w-full text-white bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617]">
 
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-[270px] bg-gradient-to-b from-[#071c2f] to-[#04111f] px-6 py-6 flex flex-col border-r border-white/10">
-
+<aside className="fixed left-0 top-0 h-screen w-[270px] bg-gradient-to-b from-[#071c2f] to-[#04111f] px-6 py-6 flex flex-col border-r border-white/10">
         {/* LOGO */}
         <div className="mb-8 flex justify-center">
           <img src={logo} alt="RMK ZapOut" className="w-44 object-contain" />
@@ -113,8 +112,8 @@ const AdminLayout = () => {
       </aside>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="h-full rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6">
+<main className="flex-1 ml-[270px] p-6 overflow-y-auto">
+          <div className="h-full rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6">
           <Outlet />
         </div>
       </main>

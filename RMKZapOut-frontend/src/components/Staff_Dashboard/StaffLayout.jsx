@@ -52,8 +52,7 @@ const StaffLayout = () => {
     <div className="flex min-h-screen w-full text-white bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617]">
       
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-[260px] bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617] px-6 py-6 flex flex-col border-r border-white/10">
-
+<aside className="fixed left-0 top-0 h-screen w-[260px] bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617] px-6 py-6 flex flex-col border-r border-white/10">
         {/* LOGO */}
         <div className="mb-10 flex justify-center">
           <img src={logo} alt="RMK ZapOut" className="w-44 object-contain" />
@@ -124,8 +123,8 @@ const StaffLayout = () => {
       </aside>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
+<main className="flex-1 ml-[260px] overflow-y-auto">     
+     <Outlet />
       </main>
     </div>
   );
