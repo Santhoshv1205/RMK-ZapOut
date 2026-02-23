@@ -1,18 +1,43 @@
 import { useState } from "react";
 
 export default function NeedHelp() {
-  const [ticket, setTicket] = useState({
-    issueType: "",
+  const [feedback, setFeedback] = useState({
+    rating: 0,
     message: "",
-    file: null,
   });
+
+  const [submitted, setSubmitted] = useState(false);
+
+  // submit feedback → send to backend (admin can view)
+  const handleSubmit = async () => {
+    if (!feedback.rating || !feedback.message) {
+      alert("Please give rating and feedback");
+      return;
+    }
+
+    try {
+      // CONNECT YOUR BACKEND HERE
+      // example API endpoint
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback),
+      });
+
+      setSubmitted(true);
+      setFeedback({ rating: 0, message: "" });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit feedback");
+    }
+  };
 
   return (
     <div className="min-h-screen p-6 text-white bg-gradient-to-br from-[#0f172a] to-[#020617]">
 
       <h1 className="text-3xl text-green-500 font-semibold mb-6">Need Help</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <GlassCard title="Quick Help">
           <AccordionItem
@@ -45,12 +70,6 @@ export default function NeedHelp() {
           />
         </GlassCard>
 
-        <GlassCard title="Contact Support">
-          <Contact label="Counsellor" value="+91 98765 43210" />
-          <Contact label="Warden" value="+91 91234 56789" />
-          <Contact label="IT Support" value="support@rmk.edu.in" />
-        </GlassCard>
-
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -70,64 +89,51 @@ export default function NeedHelp() {
           />
         </GlassCard>
 
-        <GlassCard title="Raise Support Ticket">
-          <select
-            className="w-full p-2 mb-3 bg-transparent border border-white/20 rounded outline-none"
-            value={ticket.issueType}
-            onChange={(e) =>
-              setTicket({ ...ticket, issueType: e.target.value })
-            }
-          >
-            <option value="">Select Issue Type</option>
-            <option>Gate Pass Issue</option>
-            <option>On-Duty Issue</option>
-            <option>Approval Delay</option>
-            <option>Other</option>
-          </select>
+        {/* Feedback Card */}
+        <GlassCard title="Feedback">
+
+          {submitted && (
+            <p className="text-green-400 mb-3">
+              Feedback submitted successfully ✔
+            </p>
+          )}
+
+          {/* Star Rating */}
+          <div className="flex gap-2 mb-4 text-3xl cursor-pointer">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                onClick={() => setFeedback({ ...feedback, rating: star })}
+                className={`transition ${
+                  star <= feedback.rating
+                    ? "text-yellow-400 scale-110"
+                    : "text-gray-500 hover:text-yellow-300"
+                }`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
 
           <textarea
-            className="w-full p-2 mb-4 bg-transparent border border-white/20 rounded outline-none"
+            className="w-full p-3 mb-4 bg-white/10 border border-white/20 rounded outline-none"
             rows="4"
-            placeholder="Describe your issue"
-            value={ticket.message}
+            placeholder="Share your feedback"
+            value={feedback.message}
             onChange={(e) =>
-              setTicket({ ...ticket, message: e.target.value })
+              setFeedback({ ...feedback, message: e.target.value })
             }
           />
 
-          <label className="block mb-4 cursor-pointer">
-            <div className="flex items-center justify-center gap-3 p-4 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 transition">
-              <span className="text-2xl">📎</span>
-              <span className="text-sm">
-                {ticket.file ? ticket.file.name : "Upload Screenshot"}
-              </span>
-            </div>
-
-            <input
-              type="file"
-              className="hidden"
-              onChange={(e) =>
-                setTicket({ ...ticket, file: e.target.files[0] })
-              }
-            />
-          </label>
-
-          <button className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition">
-            Submit Ticket
+          <button
+            onClick={handleSubmit}
+            className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+          >
+            Submit Feedback
           </button>
+
         </GlassCard>
 
-      </div>
-
-      <div className="mt-6">
-        <GlassCard title="Emergency Help">
-          <p className="mb-4 text-red-300">
-            Use only in genuine emergency situations
-          </p>
-          <button className="w-full py-3 bg-red-600 rounded hover:bg-red-700 transition text-lg">
-            🚨 Emergency Exit Request
-          </button>
-        </GlassCard>
       </div>
 
     </div>
@@ -161,15 +167,6 @@ function GlassCard({ title, children }) {
     <div className="p-5 rounded-xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg">
       <h2 className="text-xl font-semibold mb-3">{title}</h2>
       {children}
-    </div>
-  );
-}
-
-function Contact({ label, value }) {
-  return (
-    <div className="flex justify-between items-center mb-2">
-      <span>{label}</span>
-      <span className="text-blue-300">{value}</span>
     </div>
   );
 }
