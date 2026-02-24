@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const ON_DUTY_API = "http://localhost:5000/api/onduty";
+const API = `${import.meta.env.VITE_API_URL}/api/onduty`;
 
 // ✅ This URL now matches the router
 export const fetchStudentProfile = (userId) =>
-  axios.get(`${ON_DUTY_API}/profile/${userId}`);
+  axios.get(`${API}/profile/${userId}`);
 
 // Apply on-duty
 export const applyOnDuty = (formData) =>
-  axios.post(`${ON_DUTY_API}/apply`, formData);
+  axios.post(`${API}/apply`, formData);

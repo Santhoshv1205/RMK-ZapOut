@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/departments";
+const API = `${import.meta.env.VITE_API_URL}/api/departments`;
 
 export const fetchDepartments = () => axios.get(API);
 

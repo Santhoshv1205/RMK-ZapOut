@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/staff/profile";
+const API = `${import.meta.env.VITE_API_URL}/api/staff/profile`;
 
 export const fetchStaffProfile = (userId) =>
-  axios.get(`${API_URL}/${userId}`);
+  axios.get(`${API}/${userId}`);
 
 export const updateStaffProfile = (userId, data) =>
-  axios.put(`${API_URL}/${userId}`, data);
+  axios.put(`${API}/${userId}`, data);

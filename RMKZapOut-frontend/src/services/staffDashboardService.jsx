@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/staff/dashboard";
+const API = `${import.meta.env.VITE_API_URL}/api/staff/dashboard`;
 
 /**
  * Fetch staff dashboard statistics
@@ -10,7 +10,7 @@ const API_BASE = "http://localhost:5000/api/staff/dashboard";
 export const fetchStaffDashboardStats = async (staffId, role) => {
   try {
     const response = await axios.get(
-      `${API_BASE}/stats/${staffId}`,
+      `${API}/stats/${staffId}`,
       {
         params: { role },
       }

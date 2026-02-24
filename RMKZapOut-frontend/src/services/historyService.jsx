@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL of your backend API
-const API_URL = "http://localhost:5000/api/history";
+const API = `${import.meta.env.VITE_API_URL}/api/history`;
 
 /**
  * Fetch the request history of a student
@@ -9,7 +9,7 @@ const API_URL = "http://localhost:5000/api/history";
  * @returns {Promise} Axios promise with the history data
  */
 export const getStudentHistory = (userId) => {
-  return axios.get(`${API_URL}/${userId}`); // <-- FIXED
+  return axios.get(`${API}/${userId}`); // <-- FIXED
 };
 
 /**
@@ -18,5 +18,5 @@ export const getStudentHistory = (userId) => {
  * @returns {Promise} Axios promise with the history data
  */
 export const getStaffHistory = (userId) => {
-  return axios.get(`${API_URL}/staff/${userId}`);
+  return axios.get(`${API}/staff/${userId}`);
 };

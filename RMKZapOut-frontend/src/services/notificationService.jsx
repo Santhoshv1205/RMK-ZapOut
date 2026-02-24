@@ -1,18 +1,18 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/notifications";
+const API = `${import.meta.env.VITE_API_URL}/api/notifications`;
 
 const getNotifications = (userId) =>
-  axios.get(`${API_URL}/${userId}`);
+  axios.get(`${API}/${userId}`);
 
 const markAsRead = (id) =>
-  axios.put(`${API_URL}/read/${id}`);
+  axios.put(`${API}/read/${id}`);
 
 const markAllAsRead = (userId) =>
-  axios.put(`${API_URL}/read-all/${userId}`);
+  axios.put(`${API}/read-all/${userId}`);
 
 const clearAll = (userId) =>
-  axios.delete(`${API_URL}/${userId}`);
+  axios.delete(`${API}/${userId}`);
 
 export default {
   getNotifications,

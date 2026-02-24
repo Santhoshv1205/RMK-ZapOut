@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/student/profile";
+const API = `${import.meta.env.VITE_API_URL}/api/student/profile`;
 
 export const fetchStudentProfile = (userId) =>
   axios.get(`${API}/${userId}`);

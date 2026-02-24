@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/admin/dashboard";
+const API = `${import.meta.env.VITE_API_URL}/api/admin/dashboard`;
 
 /* =========================
    DASHBOARD STATS
@@ -12,7 +12,7 @@ export const fetchDashboardStats = () =>
    DEPARTMENTS
 ========================= */
 export const fetchDepartments = () =>
-  axios.get("http://localhost:5000/api/admin/dashboard/departments-reports");
+  axios.get(`${API}/departments-reports`);
 
 /* Academic Calendar */
 export const fetchCalendars = () => axios.get(`${API}/academic-calendar`);
