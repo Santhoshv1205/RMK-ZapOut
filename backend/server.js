@@ -60,23 +60,23 @@ httpServer.listen(PORT, () => {
 });
 
 
-import { sendWhatsAppMessage } from "./services/whatsapp/whatsappService.js";
+// import { sendWhatsAppMessage } from "./services/whatsapp/whatsappService.js";
 
-setTimeout(() => {
-    sendWhatsAppMessage("919361321901", `
-🎓 RMK ZapOut - Gatepass Approved
+// setTimeout(() => {
+//     sendWhatsAppMessage("919361321901", `
+// 🎓 RMK ZapOut - Gatepass Approved
 
-Hello Parent,
+// Hello Parent,
 
-Your Gatepass request has been APPROVED ✅
+// Your Gatepass request has been APPROVED ✅
 
-📅 From: 24-02-2026
-📅 To: 28-02-2026
-📍 Reason: sick leave
+// 📅 From: 24-02-2026
+// 📅 To: 28-02-2026
+// 📍 Reason: sick leave
 
-🧾 Please show the QR code at the college gate for verification.
+// 🧾 Please show the QR code at the college gate for verification.
 
-Thank you.
-RMK Engineering College
-`);
-}, 15000);
+// Thank you.
+// RMK Engineering College
+// `);
+// }, 15000);

@@ -1,3 +1,5 @@
 .env
 # Ignore uploaded files
 uploads/
+.wwebjs_auth/
+.wwebjs_cache/

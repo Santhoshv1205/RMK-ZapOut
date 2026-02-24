@@ -3,6 +3,9 @@ import { getIO } from "../config/socket.js";
 import cloudinary from "../config/cloudinary.js";
 import { sendStudentNotification } from "./notifications/staffNotificationController.js";
 import { sendStaffNotification } from "./notifications/studentNotificationController.js";
+import { notifyStageChange } from "../services/notificationservice/requestNotificationService.js";
+
+
 export const notifyNextApprovers = async (nextStage, reqRow, requestId, approverId) => {
   const io = getIO();
   let users = [];
@@ -635,6 +638,7 @@ if (action === "APPROVE") {
       nextStatus = "COUNSELLOR_APPROVED";
     }
   }
+  
 
   /* =====================================================
      EFFECTIVE COORDINATOR (Normal flow)
@@ -652,6 +656,7 @@ if (action === "APPROVE") {
   else if (role === "HOD" && reqRow.current_stage === "HOD") {
     nextStage = "WARDEN";
     nextStatus = "HOD_APPROVED";
+    
   }
 
   /* ---------- WARDEN ---------- */
@@ -670,6 +675,32 @@ if (action === "APPROVE") {
      WHERE id = ?`,
     [nextStatus, nextStage, requestId]
   );
+  /* ================= WHATSAPP TRIGGER ================= */
+
+/* ================= WHATSAPP TRIGGER ================= */
+
+try {
+
+  // 🔹 Counsellor approving at counsellor stage
+  if (
+    reqRow.current_stage === "COUNSELLOR" &&
+    (role === "COUNSELLOR" ||
+     (role === "COORDINATOR" && reqRow.counsellor_user_id == staffId))
+  ) {
+    await notifyStageChange(requestId, "COUNSELLOR_APPROVED");
+  }
+
+  // 🔹 HOD approving at HOD stage
+  if (
+    reqRow.current_stage === "HOD" &&
+    role === "HOD"
+  ) {
+    await notifyStageChange(requestId, "HOD_APPROVED");
+  }
+
+} catch (err) {
+  console.error("WhatsApp notification failed:", err.message);
+}
   /* -------- STUDENT NOTIFICATION -------- */
   const nextApproverLabel =
     nextStage === "COMPLETED" ? "final approval" : nextStage;
