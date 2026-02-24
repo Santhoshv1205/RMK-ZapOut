@@ -38,8 +38,14 @@ import AuditLogs from "./components/Admin_Dashboard/AuditLogs.jsx";
 import AdminSettings from "./components/Admin_Dashboard/AdminSettings.jsx";
 import { NotificationProvider } from "./components/context/NotificationContext.jsx";
 import { RequestBadgeProvider } from "./components/context/RequestBadgeContext.jsx";
-import DEODashboard from "./components/DEO_Dashboard/DEODashboard.jsx";
+
+/* ================= DEO ================= */
 import DEOLayout from "./components/DEO_Dashboard/DEOLayout.jsx";
+import DEODashboard from "./components/DEO_Dashboard/DEODashboard.jsx";
+import DEOStudents from "./components/DEO_Dashboard/StudentsList.jsx";
+import PrintView from "./components/DEO_Dashboard/PrintView.jsx";
+import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
+import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
 
 const App = () => {
   return (
@@ -61,19 +67,19 @@ const App = () => {
       </Route>
 
       {/* ================= STAFF ================= */}
-      <Route path="/staff" element={
-        <NotificationProvider>
-          <RequestBadgeProvider>
-          <StaffLayout />
-          </RequestBadgeProvider>
-        </NotificationProvider>
-        }>
+      <Route
+        path="/staff"
+        element={
+          <NotificationProvider>
+            <RequestBadgeProvider>
+              <StaffLayout />
+            </RequestBadgeProvider>
+          </NotificationProvider>
+        }
+      >
         <Route path="dashboard" element={<StaffDashboard />} />
         <Route path="students" element={<Students />} />
-        <Route path="requests" element={
-          <StaffRequests />
-
-          } />
+        <Route path="requests" element={<StaffRequests />} />
         <Route path="history" element={<StaffHistory />} />
         <Route path="notifications" element={<StaffNotifications />} />
         <Route path="need-help" element={<StaffNeedHelp />} />
@@ -94,12 +100,12 @@ const App = () => {
 
       {/* ================= DEO ================= */}
       <Route path="/deo" element={<DEOLayout />}>
-
         <Route path="dashboard" element={<DEODashboard />} />
-        
-        
-
-        </Route>
+<Route path="students" element={<DEOStudents />} />
+        <Route path="print" element={<PrintView />} />
+        <Route path="profile" element={<DEOProfile />} />
+<Route path="need-help" element={<DEONeedHelp />} />
+      </Route>
     </Routes>
   );
 };
