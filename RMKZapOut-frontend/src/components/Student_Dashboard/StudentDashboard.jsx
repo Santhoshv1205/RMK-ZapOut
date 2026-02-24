@@ -36,7 +36,6 @@ const StudentDashboard = () => {
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedYear, setSelectedYear] = useState("1");
 
-  const calendarRef = useRef(null);
   const calendarTableRef = useRef(null);
 
   const glass =

@@ -38,6 +38,8 @@ import AuditLogs from "./components/Admin_Dashboard/AuditLogs.jsx";
 import AdminSettings from "./components/Admin_Dashboard/AdminSettings.jsx";
 import { NotificationProvider } from "./components/context/NotificationContext.jsx";
 import { RequestBadgeProvider } from "./components/context/RequestBadgeContext.jsx";
+import DEODashboard from "./components/DEO_Dashboard/DEODashboard.jsx";
+import DEOLayout from "./components/DEO_Dashboard/DEOLayout.jsx";
 
 const App = () => {
   return (
@@ -89,6 +91,15 @@ const App = () => {
         <Route path="audit-logs" element={<AuditLogs />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
+
+      {/* ================= DEO ================= */}
+      <Route path="/deo" element={<DEOLayout />}>
+
+        <Route path="dashboard" element={<DEODashboard />} />
+        
+        
+
+        </Route>
     </Routes>
   );
 };
