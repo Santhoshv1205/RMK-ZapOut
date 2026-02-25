@@ -48,6 +48,11 @@ import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
 import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
 import DEORequests from "./components/DEO_Dashboard/DEORequests.jsx";
 
+/* ================= WATCHMAN ================= */
+import WatchmanDashboard from "./components/Watchman_Dashboard/WatchmanDashboard";
+import WatchmanHome from "./components/Watchman_Dashboard/WatchmanHome";
+
+
 const App = () => {
   return (
     <Routes>
@@ -107,6 +112,14 @@ const App = () => {
         <Route path="profile" element={<DEOProfile />} />
 <Route path="need-help" element={<DEONeedHelp />} />
       </Route>
+
+      {/* ================= WATCHMAN ================= */}
+      
+
+<Route path="/watchman" element={<WatchmanDashboard />}>
+  <Route path="dashboard" element={<WatchmanHome />} />
+</Route>
+
     </Routes>
   );
 };
