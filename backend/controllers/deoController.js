@@ -134,3 +134,91 @@ export const getDeoRequests = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch requests" });
   }
 };
+
+
+/* ===============================
+   DEO DASHBOARD STATS
+================================= */
+export const getDeoDashboardStats = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 1️⃣ Get DEO department + academic type
+    const [[deo]] = await db.query(
+      `SELECT department_id, academic_type
+       FROM deos
+       WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (!deo) {
+      return res.status(404).json({ message: "DEO not found" });
+    }
+
+    // 2️⃣ Total Students
+    let totalStudentsQuery = `SELECT COUNT(*) AS total_students FROM students`;
+    let totalStudentsParams = [];
+
+    if (deo.academic_type === "CORE_DEPT") {
+      totalStudentsQuery += ` WHERE department_id = ?`;
+      totalStudentsParams.push(deo.department_id);
+    }
+
+    const [[studentsCount]] = await db.query(totalStudentsQuery, totalStudentsParams);
+
+    // 3️⃣ On-Duty Counts
+   let odQuery = `
+  SELECT 
+    COUNT(*) AS total_od,
+    SUM(CASE WHEN r.status IN ('SUBMITTED','COUNSELLOR_APPROVED','COORDINATOR_APPROVED') THEN 1 ELSE 0 END) AS pending_od,
+    SUM(CASE WHEN r.status IN ('HOD_APPROVED','WARDEN_APPROVED') THEN 1 ELSE 0 END) AS approved_od
+  FROM requests r
+  JOIN students s ON r.student_id = s.id
+  WHERE r.request_type = 'ON_DUTY'
+`;
+    let odParams = [];
+    if (deo.academic_type === "CORE_DEPT") {
+      odQuery += ` AND s.department_id = ?`;
+      odParams.push(deo.department_id);
+    }
+
+    const [[odCount]] = await db.query(odQuery, odParams);
+
+    // 4️⃣ Gatepass Counts
+   let gpQuery = `
+  SELECT 
+    COUNT(*) AS total_gp,
+    SUM(CASE WHEN r.status IN ('SUBMITTED','COUNSELLOR_APPROVED','COORDINATOR_APPROVED') THEN 1 ELSE 0 END) AS pending_gp,
+    SUM(CASE WHEN r.status IN ('HOD_APPROVED','WARDEN_APPROVED') THEN 1 ELSE 0 END) AS approved_gp
+  FROM requests r
+  JOIN students s ON r.student_id = s.id
+  WHERE r.request_type = 'GATE_PASS'
+`;
+    let gpParams = [];
+    if (deo.academic_type === "CORE_DEPT") {
+      gpQuery += ` AND s.department_id = ?`;
+      gpParams.push(deo.department_id);
+    }
+
+    const [[gpCount]] = await db.query(gpQuery, gpParams);
+
+    // 5️⃣ Academic Calendar
+    const [academicCalendar] = await db.query(
+      `SELECT * FROM academic_calendars ORDER BY uploaded_at DESC`
+    );
+
+    // ✅ Response
+    res.json({
+      totalStudents: studentsCount.total_students,
+      odPending: odCount.pending_od,
+      odApproved: odCount.approved_od,
+      gatepassPending: gpCount.pending_gp,
+      gatepassApproved: gpCount.approved_gp,
+      academicCalendar,
+    });
+
+  } catch (error) {
+    console.error("Dashboard Stats Error:", error);
+    res.status(500).json({ message: "Failed to fetch dashboard stats" });
+  }
+};

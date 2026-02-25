@@ -50,3 +50,10 @@ export const getDeoRequests = async (userId) => {
     throw error;
   }
 };
+
+export const getDeoDashboardStats = async (userId) => {
+  const response = await axios.get(
+    `http://localhost:5000/api/deo/dashboard/${userId}`
+  );
+  return response.data;
+};
