@@ -16,14 +16,21 @@ export const getDeoProfile = async (req, res) => {
 
     const [[deo]] = await db.query(
       `SELECT 
-         d2.academic_type,
-         dep.name AS department
-       FROM deos d2
-       LEFT JOIN departments dep ON d2.department_id = dep.id
-       WHERE d2.user_id = ?`,
+     u.id,
+     u.username,
+     u.email,
+     u.phone,
+     u.role,
+     d2.academic_type,
+     dep.name AS department_code,
+     dep.display_name AS department
+   FROM users u
+   JOIN deos d2 ON u.id = d2.user_id
+   LEFT JOIN departments dep ON d2.department_id = dep.id
+   WHERE u.id = ? AND u.role='DEO' AND u.is_active=1`,
       [userId]
     );
-
+console.log("DEO FULL DATA:", deo);
     if (!deo) {
       return res.status(404).json({ message: "DEO details not found" });
     }

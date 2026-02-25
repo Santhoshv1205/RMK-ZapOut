@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FileText, Clock, CheckCircle, Users, X, User, School } from "lucide-react";
 import { getDeoDashboardStats } from "../../services/deoService.jsx";
-import { fetchStaffProfile } from "../../services/staffProfileService";
+import { getDeoProfile } from "../../services/deoService.jsx";
 
 import * as XLSX from "xlsx";
 import FullCalendar from "@fullcalendar/react";
@@ -113,36 +113,37 @@ export default function DEODashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
+useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
 
-        const profileRes = await fetchStaffProfile(user.id);
-        setStaff(profileRes.data.profile);
+     const profileRes = await getDeoProfile(user.id);
+setStaff(profileRes);
+      console.log("DEO Profile:", profileRes.data); // Debug log
 
-        const data = await getDeoDashboardStats(user.id);
+      const data = await getDeoDashboardStats(user.id);
 
-        /* ✅ CHANGE 1 — Applied Students from summary / total incoming requests */
-        setStats({
-          total: data.totalStudents,
-          applied: data?.summary?.totalIncomingRequests || data.appliedStudents || 0,
-          odPending: data.odPending,
-          odApproved: data.odApproved,
-          gatepassPending: data.gatepassPending,
-          gatepassApproved: data.gatepassApproved,
-        });
+      setStats({
+        total: data.totalStudents,
+        applied: data?.summary?.totalIncomingRequests || data.appliedStudents || 0,
+        odPending: data.odPending,
+        odApproved: data.odApproved,
+        gatepassPending: data.gatepassPending,
+        gatepassApproved: data.gatepassApproved,
+      });
 
-        setAcademicCalendar(data.academicCalendar || []);
-      } catch (err) {
-        setError("Failed to load dashboard",err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setAcademicCalendar(data.academicCalendar || []);
+      
+    } catch (err) {
+      setError("Failed to load dashboard: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchDashboard();
-  }, []);
+  fetchDashboard();
+}, []);
 
   useEffect(() => {
     setCalendarEvents(allEvents.filter((e) => e.year === selectedYear));
