@@ -43,7 +43,7 @@ import { RequestBadgeProvider } from "./components/context/RequestBadgeContext.j
 import DEOLayout from "./components/DEO_Dashboard/DEOLayout.jsx";
 import DEODashboard from "./components/DEO_Dashboard/DEODashboard.jsx";
 
-import PrintView from "./components/DEO_Dashboard/PrintView.jsx";
+import PrintView from "./components/DEO_Dashboard/StudentsList.jsx";
 import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
 import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
 import DEORequests from "./components/DEO_Dashboard/DEORequests.jsx";

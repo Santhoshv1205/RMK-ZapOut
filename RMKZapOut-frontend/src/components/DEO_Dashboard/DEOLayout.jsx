@@ -59,15 +59,15 @@ const DEOLayout = () => {
           />
 
           <SidebarItem
-            icon={<Users size={18} />}
-            label="Students"
+            icon={<Printer size={18} />}
+            label="Requests"
             active={isActive("/deo/students")}
             onClick={() => navigate("/deo/students")}
           />
 
           <SidebarItem
-            icon={<Printer size={18} />}
-            label="Print Records"
+            icon={<Users size={18} />}
+            label="Students List"
             active={isActive("/deo/print")}
             onClick={() => navigate("/deo/print")}
           />
