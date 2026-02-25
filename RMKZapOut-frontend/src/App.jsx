@@ -42,10 +42,11 @@ import { RequestBadgeProvider } from "./components/context/RequestBadgeContext.j
 /* ================= DEO ================= */
 import DEOLayout from "./components/DEO_Dashboard/DEOLayout.jsx";
 import DEODashboard from "./components/DEO_Dashboard/DEODashboard.jsx";
-import DEOStudents from "./components/DEO_Dashboard/StudentsList.jsx";
+
 import PrintView from "./components/DEO_Dashboard/PrintView.jsx";
 import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
 import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
+import DEORequests from "./components/DEO_Dashboard/DEORequests.jsx";
 
 const App = () => {
   return (
@@ -101,7 +102,7 @@ const App = () => {
       {/* ================= DEO ================= */}
       <Route path="/deo" element={<DEOLayout />}>
         <Route path="dashboard" element={<DEODashboard />} />
-<Route path="students" element={<DEOStudents />} />
+<Route path="students" element={<DEORequests />} />
         <Route path="print" element={<PrintView />} />
         <Route path="profile" element={<DEOProfile />} />
 <Route path="need-help" element={<DEONeedHelp />} />

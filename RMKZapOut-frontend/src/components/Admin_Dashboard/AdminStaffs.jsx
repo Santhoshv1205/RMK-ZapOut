@@ -192,7 +192,7 @@ const AdminStaffs = () => {
       roleFilter === "All"
         ? true
         : roleFilter === "OTHERS"
-        ? !["COUNSELLOR", "COORDINATOR", "HOD"].includes(s.role)
+        ? !["COUNSELLOR", "COORDINATOR", "HOD", "DEO"].includes(s.role)
         : s.role === roleFilter;
 
     return matchSearch && matchRole;
@@ -401,6 +401,9 @@ const AdminStaffs = () => {
 <option value="COORDINATOR" className="bg-[#020617] text-white">Coordinator</option>
 <option value="HOD" className="bg-[#020617] text-white">HOD</option>
 <option value="WARDEN" className="bg-[#020617] text-white">Warden</option>
+<option value="DEO" className="bg-[#020617] text-white">
+  DEO
+</option>
 
               </select>
 
@@ -430,7 +433,7 @@ const AdminStaffs = () => {
 
                     disabled={
                       t === "BASE_DEPT" &&
-                      ["COORDINATOR", "HOD"].includes(form.role) &&
+                      ["COORDINATOR", "HOD","DEO"].includes(form.role) &&
                       baseDeptExists(form.role) &&
                       !editStaffId
                     }
@@ -442,7 +445,7 @@ const AdminStaffs = () => {
 
               {/* Department */}
               {!(form.academic_type === "BASE_DEPT" &&
-                ["HOD", "COORDINATOR"].includes(form.role)) && (
+                ["HOD", "COORDINATOR","DEO"].includes(form.role)) && (
                 <select
                   value={form.department}
                   onChange={(e) =>
