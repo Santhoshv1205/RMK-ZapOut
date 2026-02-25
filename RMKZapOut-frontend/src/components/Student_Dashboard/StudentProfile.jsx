@@ -104,6 +104,14 @@ const StudentProfile = () => {
   };
 
   /* ================= VALIDATION ================= */
+  const handleMobileChange = (field, value) => {
+  const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+
+  setForm((prev) => ({
+    ...prev,
+    [field]: digitsOnly,
+  }));
+};
   const validateBasic = () => {
     if (!form.name || !form.roll || !form.dept || !form.section || !form.year || !form.type)
       return false;
@@ -115,7 +123,9 @@ const StudentProfile = () => {
   };
 
   const validateContact = () =>
-    form.mobile && form.collegeEmail && form.counsellorName && form.counsellorMobile;
+  isValidMobile(form.mobile) &&
+  form.collegeEmail &&
+  form.counsellorName;
 
   const validateParents = () =>
     form.fatherName && form.fatherMobile && form.motherName && form.motherMobile;
@@ -175,19 +185,25 @@ const StudentProfile = () => {
             <div className={`${glass} p-6`}>
               <Header title="Student Contact Details" editing={editContact} onEdit={() => setEditContact(true)} onSave={saveContact} onReset={() => resetSection("contact")} />
               {errorContact && <Error text={errorContact} />}
-              <ContactFields editing={editContact} form={form} setForm={setForm} />
-              {form.counsellorMobile && (
-                <a href={`tel:${form.counsellorMobile}`} className="mt-4 inline-flex items-center gap-2 bg-green-500/20 border border-green-500/40 px-4 py-2 rounded-lg text-green-300">
-                  <Phone size={14} /> Call Counsellor
-                </a>
-              )}
+<ContactFields
+  editing={editContact}
+  form={form}
+  setForm={setForm}
+  handleMobileChange={handleMobileChange}
+/>
+              
             </div>
 
             {/* PARENTS */}
             <div className={`${glass} p-6`}>
               <Header title="Parents & Guardian" editing={editParents} onEdit={() => setEditParents(true)} onSave={saveParents} onReset={() => resetSection("parents")} />
               {errorParents && <Error text={errorParents} />}
-              <ParentsFields editing={editParents} form={form} setForm={setForm} />
+<ParentsFields
+  editing={editParents}
+  form={form}
+  setForm={setForm}
+  handleMobileChange={handleMobileChange}
+/>
             </div>
 
           </div>
@@ -225,27 +241,53 @@ const BasicFields = ({ editing, form, setForm }) => (
   </div>
 );
 
-const ContactFields = ({ editing, form, setForm }) => (
-  <div className={`${editing ? "" : "pointer-events-none opacity-60"} space-y-4`}>
-    <Input label="Mobile Number" required value={form.mobile} onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
+const ContactFields = ({ editing, form, setForm, handleMobileChange }) => (
+    <div className={`${editing ? "" : "pointer-events-none opacity-60"} space-y-4`}>
+<Input
+  label="Mobile Number"
+  required
+  type="tel"
+  maxLength={10}
+  value={form.mobile}
+  onChange={(e) => handleMobileChange("mobile", e.target.value)}
+/>
     <Input label="College Email ID" required value={form.collegeEmail} onChange={(e) => setForm({ ...form, collegeEmail: e.target.value })} />
     <Input label="Personal Email" value={form.personalEmail} onChange={(e) => setForm({ ...form, personalEmail: e.target.value })} />
     <Divider />
     <Input label="Counsellor Name" required value={form.counsellorName} onChange={(e) => setForm({ ...form, counsellorName: e.target.value })} />
-    <Input label="Counsellor Phone Number" required value={form.counsellorMobile} onChange={(e) => setForm({ ...form, counsellorMobile: e.target.value })} />
   </div>
 );
 
-const ParentsFields = ({ editing, form, setForm }) => (
+const ParentsFields = ({ editing, form, setForm, handleMobileChange }) => (
   <div className={`${editing ? "" : "pointer-events-none opacity-60"} space-y-4`}>
     <Input label="Father Name" required value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} />
-    <Input label="Father Mobile" required value={form.fatherMobile} onChange={(e) => setForm({ ...form, fatherMobile: e.target.value })} />
+<Input
+  label="Father Mobile"
+  required
+  type="tel"
+  maxLength={10}
+  value={form.fatherMobile}
+  onChange={(e) => handleMobileChange("fatherMobile", e.target.value)}
+/>
     <Divider />
     <Input label="Mother Name" required value={form.motherName} onChange={(e) => setForm({ ...form, motherName: e.target.value })} />
-    <Input label="Mother Mobile" required value={form.motherMobile} onChange={(e) => setForm({ ...form, motherMobile: e.target.value })} />
+<Input
+  label="Mother Mobile"
+  required
+  type="tel"
+  maxLength={10}
+  value={form.motherMobile}
+  onChange={(e) => handleMobileChange("motherMobile", e.target.value)}
+/>
     <Divider />
     <Input label="Guardian Name" value={form.guardianName} onChange={(e) => setForm({ ...form, guardianName: e.target.value })} />
-    <Input label="Guardian Mobile" value={form.guardianMobile} onChange={(e) => setForm({ ...form, guardianMobile: e.target.value })} />
+<Input
+  label="Guardian Mobile"
+  type="tel"
+  maxLength={10}
+  value={form.guardianMobile}
+  onChange={(e) => handleMobileChange("guardianMobile", e.target.value)}
+/>
     <Input
   label="Guardian Address"
   value={form.guardianAddress}
