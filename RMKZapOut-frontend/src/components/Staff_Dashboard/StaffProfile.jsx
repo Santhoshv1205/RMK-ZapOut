@@ -50,14 +50,22 @@ const handleEdit = () => {
   setEditMode(true);
 };
 
-
 const handleSave = async () => {
   try {
     setErrorMsg(""); // clear old errors
 
+    // ✅ Mobile must be exactly 10 digits
+    const isValidMobile = /^[0-9]{10}$/.test(tempProfile?.phone || "");
+
+    if (!isValidMobile) {
+      setErrorMsg("Mobile number must be exactly 10 digits.");
+      return; // stop save
+    }
+
     await updateStaffProfile(sessionUser.id, tempProfile);
     setProfile(tempProfile);
     setEditMode(false);
+
   } catch (err) {
     console.error("Profile update error:", err);
 
@@ -65,13 +73,22 @@ const handleSave = async () => {
       err?.response?.data?.message ||
       "Failed to update profile. Please try again.";
 
-    setErrorMsg(message); // ✅ show UI error box
+    setErrorMsg(message); // show UI error box
   }
 };
 
 
-
   const handleReset = () => setTempProfile(profile);
+  const handleMobileChange = (value) => {
+  if (!tempProfile) return; // prevent crash
+
+  const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+
+  setTempProfile((prev) => ({
+    ...(prev || {}),
+    phone: digitsOnly,
+  }));
+};
 
   if (loading) return <p className="p-6 text-white">Loading profile…</p>;
   if (!profile) return null;
@@ -218,12 +235,12 @@ const handleSave = async () => {
           />
 
           <InputField
-            icon={<Phone size={16} />}
-            label="Mobile Number"
-            value={tempProfile.phone || ""}
-            disabled={!editMode}
-            onChange={(v) => setTempProfile({ ...tempProfile, phone: v })}
-          />
+  icon={<Phone size={16} />}
+  label="Mobile Number"
+  value={tempProfile.phone || ""}
+  disabled={!editMode}
+  onChange={(v) => handleMobileChange(v)}
+/>
         </div>
       </div>
     </div>
