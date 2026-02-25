@@ -73,6 +73,16 @@ const AdminStudents = () => {
   }, [form.department_id, form.year_of_study]);
 
   /* ================= HANDLERS ================= */
+
+  const handlePhoneChange = (value) => {
+  const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+
+  setForm((prev) => ({
+    ...prev,
+    phone: digitsOnly,
+  }));
+};
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -81,10 +91,18 @@ const AdminStudents = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.username || !form.register_number || !form.email || !form.department_id) {
-      alert("Please fill all required fields");
-      return;
-    }
+  if (!form.username || !form.register_number || !form.email || !form.department_id) {
+    alert("Please fill all required fields");
+    return;
+  }
+
+  // ✅ Phone validation
+  const isValidPhone = /^[0-9]{10}$/.test(form.phone || "");
+
+  if (!isValidPhone) {
+    alert("Phone number must be exactly 10 digits.");
+    return;
+  }
 
     try {
       if (editData) {
@@ -277,7 +295,12 @@ const AdminStudents = () => {
               <Input label="Name" name="username" value={form.username} onChange={handleChange} />
               <Input label="Register Number" name="register_number" value={form.register_number} onChange={handleChange} />
               <Input label="Email" name="email" value={form.email} onChange={handleChange} />
-              <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
+              <Input
+  label="Phone"
+  name="phone"
+  value={form.phone}
+  onChange={(e) => handlePhoneChange(e.target.value)}
+/>
 
               <Select
                 label="Student Type"
