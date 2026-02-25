@@ -77,8 +77,8 @@ export const applyGatepass = async (req, res) => {
 
     await db.query(
       `INSERT INTO gate_pass_details
-       (request_id, reason, out_time, from_date, to_date, in_time, time_of_leaving, total_days)
-       VALUES (?, ?, ?, ?, ?, NULL, ?, ?)`,
+       (request_id, reason, out_time, from_date, to_date,  time_of_leaving, total_days)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [requestId, reason, out_time, from_date, to_date, out_time, totalDays]
     );
 

@@ -280,7 +280,7 @@ const loadPreview = async (url) => {
                     <>
                       <InfoBox label="Reason" value={r.reason} />
                       <InfoBox label="Out Time" value={r.out_time || "N/A"} />
-                      <InfoBox label="In Time" value={r.in_time || "N/A"} />
+                      {/* <InfoBox label="In Time" value={r.in_time || "N/A"} /> */}
                       <InfoBox label="From Date" value={formatDate(r.gp_from_date)} />
                       <InfoBox label="To Date" value={formatDate(r.gp_to_date)} />
                       <InfoBox label="Total Days" value={r.total_days} />

@@ -111,15 +111,15 @@ export const getAllStudentRequests = async (req, res) => {
         od.college,
         od.location,
         od.proof_file,
-        od.from_date AS od_from_date,
-        od.to_date AS od_to_date,
+        DATE_FORMAT(od.from_date, '%Y-%m-%d') AS od_from_date,
+        DATE_FORMAT(od.to_date, '%Y-%m-%d') AS od_to_date,
         od.total_days AS od_total_days,
 
         gp.reason,
         gp.out_time,
-        gp.in_time,
-        gp.from_date AS gp_from_date,
-        gp.to_date AS gp_to_date,
+       
+        DATE_FORMAT(gp.from_date, '%Y-%m-%d') AS gp_from_date,
+        DATE_FORMAT(gp.to_date, '%Y-%m-%d') AS gp_to_date,
         gp.total_days AS gp_total_days
 
       FROM requests r
@@ -239,10 +239,7 @@ let proofFileUrl = req.file ? req.file.path : null;
       ? null
       : data.outTime;
 
-  const safeInTime =
-    !data.inTime || data.inTime === "null"
-      ? null
-      : data.inTime;
+
 
   const safeFromDate =
     !data.fromDate || data.fromDate === "null"
@@ -268,7 +265,7 @@ let proofFileUrl = req.file ? req.file.path : null;
     `UPDATE gate_pass_details SET
       reason = ?,
       out_time = ?,
-      in_time = ?,
+    
       from_date = ?,
       to_date = ?,
       total_days = ?
@@ -276,7 +273,7 @@ let proofFileUrl = req.file ? req.file.path : null;
     [
       data.reason || null,
       safeOutTime,
-      safeInTime,
+     
       safeFromDate,
       safeToDate,
       totalDays,

@@ -73,7 +73,7 @@ const StudentRequests = () => {
       setEditData({
         reason: r.reason,
         outTime: r.out_time,
-        inTime: r.in_time,
+        
         fromDate: r.gp_from_date?.split("T")[0],
         toDate: r.gp_to_date?.split("T")[0],
       });
@@ -248,8 +248,8 @@ return (
                     <EditableCard label="Event Name" name="eventName" value={isEditing ? editData.eventName : r.event_name} editable={isEditing} onChange={handleChange} />
                     <EditableCard label="College" name="college" value={isEditing ? editData.college : r.college} editable={isEditing} onChange={handleChange} />
                     <EditableCard label="Location" name="location" value={isEditing ? editData.location : r.location} editable={isEditing} onChange={handleChange} />
-                    <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate : r.od_from_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
-                    <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.od_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate :String( r.od_from_date)?.slice(0, 10)} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate :String( r.od_to_date)?.slice(0, 10)} editable={isEditing} onChange={handleChange} />
                     <Card label="Total Days" value={r.od_total_days} />
                     {/* PROOF FILE */}
 <div className="bg-white/10 rounded-xl p-4 col-span-2">
@@ -300,9 +300,9 @@ return (
                   <>
                     <EditableCard label="Reason" name="reason" value={isEditing ? editData.reason : r.reason} editable={isEditing} onChange={handleChange} />
                     <EditableCard label="Out Time" name="outTime" value={isEditing ? editData.outTime : r.out_time} editable={isEditing} onChange={handleChange} />
-                    <EditableCard label="In Time" name="inTime" value={isEditing ? editData.inTime : r.in_time} editable={isEditing} onChange={handleChange} />
-                    <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate : r.gp_from_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
-                    <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate : r.gp_to_date?.split("T")[0]} editable={isEditing} onChange={handleChange} />
+                    {/* <EditableCard label="In Time" name="inTime" value={isEditing ? editData.inTime : r.in_time} editable={isEditing} onChange={handleChange} /> */}
+                    <EditableCard label="From Date" name="fromDate" value={isEditing ? editData.fromDate :String( r.gp_from_date)?.slice(0, 10)} editable={isEditing} onChange={handleChange} />
+                    <EditableCard label="To Date" name="toDate" value={isEditing ? editData.toDate :String( r.gp_to_date)?.slice(0, 10)} editable={isEditing} onChange={handleChange} />
                     <Card label="Total Days" value={r.gp_total_days} />
                     
                   </>
