@@ -114,7 +114,9 @@ const Login = () => {
       r === "warden"
     )
       navigate("/staff/dashboard");
+      else if (r === "deo") navigate("/deo/dashboard");
     else if (r === "admin") navigate("/admin/dashboard");
+
     else setError("Invalid user role");
   };
 

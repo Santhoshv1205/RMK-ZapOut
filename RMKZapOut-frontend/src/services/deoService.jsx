@@ -1,0 +1,52 @@
+// src/services/deoService.jsx
+
+import axios from "axios";
+
+const API_URL = "http://localhost:5000/api/deo";
+
+/* ===========================
+   GET DEO PROFILE
+=========================== */
+export const getDeoProfile = async (userId) => {
+  try {
+    const response = await axios.get(`${API_URL}/profile/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching DEO profile:", error);
+    throw error;
+  }
+};
+
+/* ===========================
+   UPDATE DEO PROFILE
+=========================== */
+export const updateDeoProfile = async (userId, data) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/profile/${userId}`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating DEO profile:", error);
+    throw error;
+  }
+};
+
+/* ===========================
+   GET ALL REQUESTS (On-Duty + Gate Pass)
+=========================== */
+export const getDeoRequests = async (userId) => {
+  try {
+    const response = await axios.get(`${API_URL}/requests/${userId}`);
+    return response.data; 
+    // returns:
+    // {
+    //   onDutyRequests: [],
+    //   gatePassRequests: []
+    // }
+  } catch (error) {
+    console.error("Error fetching DEO requests:", error);
+    throw error;
+  }
+};
