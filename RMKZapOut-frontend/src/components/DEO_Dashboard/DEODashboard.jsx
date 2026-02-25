@@ -135,7 +135,7 @@ export default function DEODashboard() {
 
         setAcademicCalendar(data.academicCalendar || []);
       } catch (err) {
-        setError("Failed to load dashboard");
+        setError("Failed to load dashboard",err.message);
       } finally {
         setLoading(false);
       }
