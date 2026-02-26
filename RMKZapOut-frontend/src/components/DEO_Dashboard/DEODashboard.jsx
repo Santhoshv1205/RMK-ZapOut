@@ -125,12 +125,12 @@ setStaff(profileRes);
       const data = await getDeoDashboardStats(user.id);
 
       setStats({
-        total: data.totalStudents,
+        total: data.totalStudents || 0,
         applied: data?.summary?.totalIncomingRequests || data.appliedStudents || 0,
-        odPending: data.odPending,
-        odApproved: data.odApproved,
-        gatepassPending: data.gatepassPending,
-        gatepassApproved: data.gatepassApproved,
+        odPending: data.odPending || 0,
+        odApproved: data.odApproved || 0,
+        gatepassPending: data.gatepassPending || 0,
+        gatepassApproved: data.gatepassApproved || 0,
       });
 
       setAcademicCalendar(data.academicCalendar || []);

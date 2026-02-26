@@ -57,3 +57,21 @@ export const getDeoDashboardStats = async (userId) => {
   );
   return response.data;
 };
+
+export const fetchDepartmentStudents = (userId) => {
+  return axios.get(`${API_URL}/students/${userId}`);
+};
+/* ===========================
+   GET SINGLE STUDENT DETAILS
+=========================== */
+export const getDeoStudentById = async (studentId) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/api/students/${studentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching student details:", error);
+    throw error;
+  }
+};

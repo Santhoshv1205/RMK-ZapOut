@@ -92,6 +92,9 @@ export const getDeoRequests = async (req, res) => {
       departmentCondition = "AND st.department_id = ?";
       values.push(deo.department_id);
     }
+    else if (deo.academic_type === "BASE_DEPT") {
+  departmentCondition = "AND st.year_of_study = 1";
+}
 
     // 2️⃣ Fetch all requests
     const [requests] = await db.query(
@@ -167,9 +170,12 @@ export const getDeoDashboardStats = async (req, res) => {
     let totalStudentsParams = [];
 
     if (deo.academic_type === "CORE_DEPT") {
-      totalStudentsQuery += ` WHERE department_id = ?`;
-      totalStudentsParams.push(deo.department_id);
-    }
+  totalStudentsQuery += ` WHERE department_id = ?`;
+  totalStudentsParams.push(deo.department_id);
+} 
+else if (deo.academic_type === "BASE_DEPT") {
+  totalStudentsQuery += ` WHERE year_of_study = 1`;
+}
 
     const [[studentsCount]] = await db.query(totalStudentsQuery, totalStudentsParams);
 
@@ -184,10 +190,13 @@ export const getDeoDashboardStats = async (req, res) => {
   WHERE r.request_type = 'ON_DUTY'
 `;
     let odParams = [];
-    if (deo.academic_type === "CORE_DEPT") {
-      odQuery += ` AND s.department_id = ?`;
-      odParams.push(deo.department_id);
-    }
+  if (deo.academic_type === "CORE_DEPT") {
+  odQuery += ` AND s.department_id = ?`;
+  odParams.push(deo.department_id);
+} 
+else if (deo.academic_type === "BASE_DEPT") {
+  odQuery += ` AND s.year_of_study = 1`;
+}
 
     const [[odCount]] = await db.query(odQuery, odParams);
 
@@ -202,10 +211,13 @@ export const getDeoDashboardStats = async (req, res) => {
   WHERE r.request_type = 'GATE_PASS'
 `;
     let gpParams = [];
-    if (deo.academic_type === "CORE_DEPT") {
-      gpQuery += ` AND s.department_id = ?`;
-      gpParams.push(deo.department_id);
-    }
+  if (deo.academic_type === "CORE_DEPT") {
+  gpQuery += ` AND s.department_id = ?`;
+  gpParams.push(deo.department_id);
+} 
+else if (deo.academic_type === "BASE_DEPT") {
+  gpQuery += ` AND s.year_of_study = 1`;
+}
 
     const [[gpCount]] = await db.query(gpQuery, gpParams);
 
@@ -227,5 +239,95 @@ export const getDeoDashboardStats = async (req, res) => {
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
     res.status(500).json({ message: "Failed to fetch dashboard stats" });
+  }
+};
+
+/* ==================================
+   GET DEPARTMENT STUDENTS FOR DEO
+================================== */
+export const getDeoStudents = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 1️⃣ Get DEO department + academic type
+    const [[deo]] = await db.query(
+      `SELECT department_id, academic_type
+       FROM deos
+       WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (!deo) {
+      return res.status(404).json({ message: "DEO not found" });
+    }
+
+ let condition = "";
+let values = [];
+
+if (deo.academic_type === "CORE_DEPT") {
+  condition = "WHERE s.department_id = ?";
+  values.push(deo.department_id);
+}
+else if (deo.academic_type === "BASE_DEPT") {
+  condition = "WHERE s.year_of_study = 1";
+}
+
+    // 3️⃣ Fetch students
+  const [students] = await db.query(
+  `
+  SELECT 
+    s.id,
+    u.username AS name,
+    u.register_number,
+    u.email,
+    u.phone,
+
+    d.display_name AS department,
+
+    s.year_of_study,
+    s.section,
+    s.student_type,
+    s.dob,
+    s.address,
+    s.permanent_address,
+
+    s.father_name,
+    s.father_mobile,
+    s.mother_name,
+    s.mother_mobile,
+    s.guardian_name,
+    s.guardian_mobile,
+
+    s.hostel_name,
+    s.room_number,
+    s.bus_details,
+
+    COALESCE(cu.username, co_u.username) AS assigned_staff
+
+  FROM students s
+  JOIN users u ON u.id = s.user_id
+  JOIN departments d ON d.id = s.department_id
+
+  LEFT JOIN counsellors c ON c.id = s.counsellor_id
+  LEFT JOIN users cu ON cu.id = c.user_id
+
+  LEFT JOIN coordinators co ON co.id = s.counsellor_id
+  LEFT JOIN users co_u ON co_u.id = co.user_id
+
+  ${condition}
+
+  ORDER BY s.year_of_study, u.username
+  `,
+  values
+);
+
+    res.json({
+      success: true,
+      data: students,
+    });
+
+  } catch (error) {
+    console.error("DEO STUDENTS ERROR:", error);
+    res.status(500).json({ message: "Failed to fetch students" });
   }
 };
