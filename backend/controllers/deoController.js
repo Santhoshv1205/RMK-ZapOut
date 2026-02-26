@@ -114,7 +114,7 @@ export const getDeoRequests = async (req, res) => {
         od.total_days AS od_total_days,
         gp.reason,
         gp.out_time,
-        gp.in_time,
+        
         gp.from_date AS gp_from_date,
         gp.to_date AS gp_to_date,
         gp.total_days AS gp_total_days
