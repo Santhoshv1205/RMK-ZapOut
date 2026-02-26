@@ -47,10 +47,11 @@ import PrintView from "./components/DEO_Dashboard/StudentsList.jsx";
 import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
 import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
 import DEORequests from "./components/DEO_Dashboard/DEORequests.jsx";
+import WatchmanLayout from "./components/Watchman_Dashboard/WatchmanLayout.jsx";
+import WatchmanDashboard from "./components/Watchman_Dashboard/WatchmanDashboard.jsx";
+import WatchmanLogs from "./components/Watchman_Dashboard/WatchmanLogs.jsx";
+import WatchmanProfile from "./components/Watchman_Dashboard/WatchmanProfile.jsx";
 
-/* ================= WATCHMAN ================= */
-import WatchmanDashboard from "./components/Watchman_Dashboard/WatchmanDashboard";
-import WatchmanHome from "./components/Watchman_Dashboard/WatchmanHome";
 
 
 const App = () => {
@@ -114,11 +115,14 @@ const App = () => {
       </Route>
 
       {/* ================= WATCHMAN ================= */}
-      
+      <Route path="/watchman" element={<WatchmanLayout />}>
+        <Route path="dashboard" element={<WatchmanDashboard />} />
+        <Route path="logs" element={<WatchmanLogs />} />
+        <Route path="profile" element ={<WatchmanProfile />} />
+      </Route>
 
-<Route path="/watchman" element={<WatchmanDashboard />}>
-  <Route path="dashboard" element={<WatchmanHome />} />
-</Route>
+
+
 
     </Routes>
   );

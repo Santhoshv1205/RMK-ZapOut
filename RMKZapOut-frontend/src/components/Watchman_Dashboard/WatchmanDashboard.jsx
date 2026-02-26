@@ -1,79 +1,152 @@
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { Home, History, LogOut } from "lucide-react";
-import logo from "../../assets/zaplogo.png"; // ← same logo used in other dashboards
+import { useState } from "react";
 
-/* ===== Sidebar Item ===== */
-const SidebarItem = ({ icon, label, onClick, active }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-        active
-          ? "bg-[#53cf57] text-white"
-          : "text-gray-300 hover:bg-white/10"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-};
+const WatchmanDashboard = () => {
+  const [scannedStudent, setScannedStudent] = useState(null);
 
-export default function WatchmanDashboard() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  // Dummy student data for UI simulation
+  const dummyStudents = [
+    {
+      register_number: "21CS001",
+      name: "Arun Kumar",
+      department: "CSE",
+      year_of_study: 3,
+      entry_time: "09:12 AM",
+      exit_time: "-",
+    },
+    {
+      register_number: "22ME045",
+      name: "Rahul",
+      department: "MECH",
+      year_of_study: 2,
+      entry_time: "08:55 AM",
+      exit_time: "01:30 PM",
+    },
+    {
+      register_number: "23IT021",
+      name: "Priya",
+      department: "IT",
+      year_of_study: 1,
+      entry_time: "10:05 AM",
+      exit_time: "-",
+    },
+  ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
+  // Simulate QR Scan
+  const handleFakeScan = () => {
+    const randomStudent =
+      dummyStudents[Math.floor(Math.random() * dummyStudents.length)];
+
+    setScannedStudent(randomStudent);
+
+    // Hide after 4 seconds
+    setTimeout(() => {
+      setScannedStudent(null);
+    }, 4000);
   };
 
   return (
-    <div className="flex min-h-screen text-white bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617]">
+    <div className="p-8 text-white min-h-screen">
 
-      {/* ===== SIDEBAR ===== */}
-      <div className="w-64 h-screen flex flex-col bg-black/40 backdrop-blur-2xl border-r border-white/20 p-6">
+      <h1 className="text-3xl font-bold text-[#52dbff] mb-8">
+        Watchman Dashboard
+      </h1>
 
-        {/* LOGO */}
-        <div className="flex justify-center mb-12">
-  <img
-    src={logo}
-    alt="RMK ZapOut"
-    className="w-24 h-auto object-contain"
-  />
-</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        {/* NAVIGATION */}
-        <div className="space-y-2">
-          <SidebarItem
-            icon={<Home size={18} />}
-            label="Dashboard"
-            onClick={() => navigate("/watchman/dashboard")}
-            active={location.pathname === "/watchman/dashboard"}
-          />
+        {/* ================= QR SCANNER ================= */}
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
 
-          <SidebarItem
-            icon={<History size={18} />}
-            label="Gate History"
-            onClick={() => navigate("/watchman/history")}
-            active={location.pathname === "/watchman/history"}
-          />
+          <h2 className="text-lg font-semibold text-green-400 mb-4">
+            QR Scanner
+          </h2>
+
+          <div className="relative w-full h-[350px] bg-black rounded-2xl flex items-center justify-center overflow-hidden border border-white/10">
+
+            {/* Scanner Frame */}
+            <div className="absolute w-64 h-64 border-4 border-green-400 rounded-xl animate-pulse"></div>
+
+            <p className="text-white/40 text-sm">
+              Camera Preview Area
+            </p>
+          </div>
+
+          {/* Fake Scan Button (UI Only) */}
+          <button
+            onClick={handleFakeScan}
+            className="mt-6 w-full bg-green-500 hover:bg-green-600 transition py-3 rounded-xl font-semibold"
+          >
+            Simulate Scan
+          </button>
+
         </div>
 
-        {/* PUSH LOGOUT TO BOTTOM */}
-        <div className="mt-auto">
-          <SidebarItem
-            icon={<LogOut size={18} />}
-            label="Logout"
-            onClick={handleLogout}
-          />
+        {/* ================= SCANNED STUDENT DISPLAY ================= */}
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl flex items-center justify-center">
+
+          {!scannedStudent ? (
+            <p className="text-white/40 text-center">
+              No student scanned
+            </p>
+          ) : (
+            <div className="w-full animate-fadeIn">
+
+              <h2 className="text-xl font-bold text-[#52dbff] mb-6 text-center">
+                Student Verified ✅
+              </h2>
+
+              <div className="space-y-4 text-sm">
+
+                <div className="flex justify-between">
+                  <span className="text-white/60">Register Number</span>
+                  <span className="font-semibold">
+                    {scannedStudent.register_number}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-white/60">Name</span>
+                  <span className="font-semibold">
+                    {scannedStudent.name}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-white/60">Department</span>
+                  <span className="font-semibold">
+                    {scannedStudent.department}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-white/60">Year</span>
+                  <span className="font-semibold">
+                    {scannedStudent.year_of_study}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-green-400">Entry Time</span>
+                  <span className="font-semibold text-green-400">
+                    {scannedStudent.entry_time}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-red-400">Exit Time</span>
+                  <span className="font-semibold text-red-400">
+                    {scannedStudent.exit_time}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+          )}
+
         </div>
+
       </div>
-
-      {/* ===== MAIN CONTENT ===== */}
-      <main className="flex-1 px-8 py-6 overflow-y-auto">
-        <Outlet />
-      </main>
     </div>
   );
-}
+};
+
+export default WatchmanDashboard;
