@@ -21,7 +21,7 @@ import admindashboardRoutes from "./routes/admindashboardRoutes.js";
 import staffDashboardRoutes from "./routes/staffDashboardRoutes.js";
 import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import deoRoutes from "./routes/deoRoutes.js";
-
+import watchmanRoutes from "./routes/watchmanRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -50,7 +50,7 @@ app.use("/api/student-dashboard", studentDashboardRoutes);
 
 //deo routes
 app.use("/api/deo", deoRoutes);
-
+app.use("/api/watchman", watchmanRoutes);
 // --- HTTP + Socket.io Setup ---
 const PORT = process.env.PORT || 5000;
 
