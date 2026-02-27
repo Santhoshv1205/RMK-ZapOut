@@ -258,7 +258,7 @@ const loadPreview = async (url) => {
                       <InfoBox label="Location" value={r.location} />
                       <InfoBox label="From Date" value={formatDate(r.od_from_date)} />
                       <InfoBox label="To Date" value={formatDate(r.od_to_date)} />
-                      <InfoBox label="Total Days" value={r.total_days} />
+                      <InfoBox label="Total Days" value={r.od_total_days} />
 
                       {/* ✅ PROOF BESIDE TOTAL DAYS */}
                       {r.od_proof_file && (
@@ -283,7 +283,7 @@ const loadPreview = async (url) => {
                       {/* <InfoBox label="In Time" value={r.in_time || "N/A"} /> */}
                       <InfoBox label="From Date" value={formatDate(r.gp_from_date)} />
                       <InfoBox label="To Date" value={formatDate(r.gp_to_date)} />
-                      <InfoBox label="Total Days" value={r.total_days} />
+                      <InfoBox label="Total Days" value={r.gp_total_days} />
                     </>
                   )}
                 </div>

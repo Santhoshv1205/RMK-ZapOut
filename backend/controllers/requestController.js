@@ -323,14 +323,15 @@ export const getStaffRequests = async (req, res) => {
         od.event_name,
         od.college,
         od.location,
-        od.from_date AS od_from_date,
-        od.to_date AS od_to_date,
+         DATE_FORMAT(od.from_date, '%Y-%m-%d') AS od_from_date,
+        DATE_FORMAT(od.to_date, '%Y-%m-%d') AS od_to_date,
         od.total_days AS od_total_days,
         od.proof_file AS od_proof_file,
 
         gp.reason,
-        gp.from_date AS gp_from_date,
-        gp.to_date AS gp_to_date,
+        gp.out_time,
+        DATE_FORMAT(gp.from_date, '%Y-%m-%d') AS gp_from_date,
+        DATE_FORMAT(gp.to_date, '%Y-%m-%d') AS gp_to_date,
         gp.total_days AS gp_total_days
 
       FROM requests r
@@ -684,7 +685,7 @@ try {
     (role === "COUNSELLOR" ||
      (role === "COORDINATOR" && reqRow.counsellor_user_id == staffId))
   ) {
-    await notifyStageChange(requestId, "COUNSELLOR_APPROVED");
+    await notifyStageChange(requestId, "COUNSELLOR_APPROVED",staffId, role);
   }
 
   // 🔹 HOD approving at HOD stage
@@ -692,7 +693,7 @@ try {
     reqRow.current_stage === "HOD" &&
     role === "HOD"
   ) {
-    await notifyStageChange(requestId, "HOD_APPROVED");
+    await notifyStageChange(requestId, "HOD_APPROVED",staffId, role);
   }
 
 } catch (err) {

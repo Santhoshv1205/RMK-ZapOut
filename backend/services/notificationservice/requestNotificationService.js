@@ -29,25 +29,21 @@ const formatTime = (timeValue) => {
 
 /* ================= MAIN FUNCTION ================= */
 
-export const notifyStageChange = async (requestId, stage) => {
+export const notifyStageChange = async (requestId, stage, staffId, staffRole) => {
   try {
 
-    const [rows] = await db.query(
-      `
-      SELECT 
+     const [rows] = await db.query(
+      `SELECT 
         u.username AS student_name,
         u.register_number,
-
         s.father_mobile,
         s.mother_mobile,
         s.guardian_mobile,
-
         r.request_type,
         r.status,
-
         cu.username AS counsellor_name,
         hu.username AS hod_name,
-
+        co_user.username AS coordinator_name,
         od.event_type,
         od.event_name,
         od.college,
@@ -55,29 +51,23 @@ export const notifyStageChange = async (requestId, stage) => {
         od.from_date AS od_from,
         od.to_date AS od_to,
         od.total_days AS od_total_days,
-
         gp.reason,
         gp.from_date AS gp_from,
         gp.to_date AS gp_to,
         gp.total_days AS gp_total_days,
         gp.time_of_leaving
-
       FROM requests r
-
       JOIN students s ON r.student_id = s.id
       JOIN users u ON s.user_id = u.id
-
-      LEFT JOIN counsellors c ON s.counsellor_id = c.id
-      LEFT JOIN users cu ON c.user_id = cu.id
-
+      LEFT JOIN counsellors cs ON cs.id = s.counsellor_id
+      LEFT JOIN users cu ON cs.user_id = cu.id
+      LEFT JOIN coordinators co ON co.department_id = s.department_id AND co.year = s.year_of_study
+      LEFT JOIN users co_user ON co.user_id = co_user.id
       LEFT JOIN hods h ON s.department_id = h.department_id
       LEFT JOIN users hu ON h.user_id = hu.id
-
       LEFT JOIN on_duty_details od ON od.request_id = r.id
       LEFT JOIN gate_pass_details gp ON gp.request_id = r.id
-
-      WHERE r.id = ?
-      `,
+      WHERE r.id = ?`,
       [requestId]
     );
 
@@ -96,7 +86,16 @@ export const notifyStageChange = async (requestId, stage) => {
       console.log("No parent phone available");
       return;
     }
+let approverName = null;
+    if (staffRole === "COUNSELLOR") {
+      approverName = data.counsellor_name;
+    } else if (staffRole === "COORDINATOR") {
+      // If coordinator is acting as counsellor, use actual coordinator
+      approverName = data.coordinator_name;
+    }
 
+    // Fallback
+    if (!approverName) approverName = "-";
     let detailsBlock = "";
     let message = "";
 
@@ -154,7 +153,7 @@ This is to inform you that
 
 *${data.student_name}* (${data.register_number})
 has been approved by the Counsellor
-👤 *Counsellor:* ${data.counsellor_name || "-"}
+👤 *Counsellor:* ${approverName}
 
 ${detailsBlock}
 
