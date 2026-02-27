@@ -37,6 +37,19 @@ const WatchmanDashboard = () => {
 
     setTimeout(() => setScannedStudent(null), 5000);
   };
+    const drawPath = (ctx, path, color) => {
+    if (!ctx || !path) return;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(path[0][0], path[0][1]);
+    path.slice(1).forEach((point) =>
+      ctx.lineTo(point[0], point[1])
+    );
+    ctx.closePath();
+    ctx.stroke();
+  };
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -111,19 +124,7 @@ const WatchmanDashboard = () => {
     };
   }, []);
 
-  const drawPath = (ctx, path, color) => {
-    if (!ctx || !path) return;
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(path[0][0], path[0][1]);
-    path.slice(1).forEach((point) =>
-      ctx.lineTo(point[0], point[1])
-    );
-    ctx.closePath();
-    ctx.stroke();
-  };
 
   return (
     <div className="p-8 min-h-screen bg-gradient-to-b from-[#0f2027] via-[#203a43] to-[#2c5364] text-white">
