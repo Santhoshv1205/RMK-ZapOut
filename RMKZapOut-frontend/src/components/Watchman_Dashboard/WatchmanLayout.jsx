@@ -52,11 +52,17 @@ const WatchmanLayout = () => {
 
           <SidebarItem
             icon={<QrCode size={18} />}
-            label="Scan Here"
-            active={isActive("/watchman/dashboard")}
-            onClick={() => navigate("/watchman/dashboard")}
+            label="Entry Scan"
+            active={isActive("/watchman/entry-scan")}
+            onClick={() => navigate("/watchman/entry-scan")}
           />
 
+  <SidebarItem
+            icon={<QrCode size={18} />}
+            label="Exit Scan"
+            active={isActive("/watchman/exit-scan")}
+            onClick={() => navigate("/watchman/exit-scan")}
+          />
           <SidebarItem
             icon={<Logs size={18} />}
             label="Logs"
