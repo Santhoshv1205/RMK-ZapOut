@@ -12,4 +12,8 @@ router.post("/exit/:register_number", scanAndMarkExit);
 // 🟢 Scan & Mark Entry
 router.post("/entry/:register_number", scanAndMarkEntry);
 
+
+
+
+
 export default router;

@@ -1,29 +1,32 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://localhost:5000/api/admin/watchman", // change if backend path differs
-});
+const BASE_URL = "http://localhost:5000/api/admin/watchmans";
 
-/* -------- GET ALL -------- */
+// Fetch all watchmen
 export const fetchWatchmen = async () => {
-  const res = await API.get("/");
-  return res.data;
+  return axios.get(BASE_URL);
 };
 
-/* -------- CREATE -------- */
+// Create a new watchman
 export const createWatchman = async (data) => {
-  const res = await API.post("/", data);
-  return res.data;
+  // Only send username, email, is_active
+  return axios.post(BASE_URL, {
+    username: data.username,
+    email: data.email,
+    is_active: data.is_active
+  });
 };
 
-/* -------- UPDATE -------- */
-export const updateWatchman = async (id, adminId, data) => {
-  const res = await API.put(`/${id}?adminId=${adminId}`, data);
-  return res.data;
+// Update a watchman
+export const updateWatchman = async (id, data) => {
+  return axios.put(`${BASE_URL}/${id}`, {
+    username: data.username,
+    email: data.email,
+    is_active: data.is_active
+  });
 };
 
-/* -------- DELETE -------- */
-export const deleteWatchman = async (id, adminId) => {
-  const res = await API.delete(`/${id}?adminId=${adminId}`);
-  return res.data;
+// Delete a watchman
+export const deleteWatchman = async (id) => {
+  return axios.delete(`${BASE_URL}/${id}`);
 };

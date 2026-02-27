@@ -115,7 +115,9 @@ const Login = () => {
     )
       navigate("/staff/dashboard");
       else if (r === "deo") navigate("/deo/dashboard");
+      else if (r === "watchman") navigate("/watchman/exit-scan");
     else if (r === "admin") navigate("/admin/dashboard");
+
 
     else setError("Invalid user role");
   };

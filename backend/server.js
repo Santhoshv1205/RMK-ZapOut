@@ -22,6 +22,7 @@ import staffDashboardRoutes from "./routes/staffDashboardRoutes.js";
 import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import deoRoutes from "./routes/deoRoutes.js";
 import watchmanRoutes from "./routes/watchmanRoutes.js";
+import adminWatchmanRoutes from "./routes/adminwatchmanRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api", adminStaffRoutes);
 app.use("/api/admin", adminStudentRoutes);
+
 app.use("/api/staff", staffStudentRoutes);
 app.use("/api/onduty", onDutyRoutes);
 app.use("/api/gatepass", gatepassRoutes);
@@ -51,6 +53,7 @@ app.use("/api/student-dashboard", studentDashboardRoutes);
 //deo routes
 app.use("/api/deo", deoRoutes);
 app.use("/api/watchman", watchmanRoutes);
+app.use("/api/admin/watchmans", adminWatchmanRoutes);
 // --- HTTP + Socket.io Setup ---
 const PORT = process.env.PORT || 5000;
 

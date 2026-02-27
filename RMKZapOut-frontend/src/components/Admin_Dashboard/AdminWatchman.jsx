@@ -5,14 +5,13 @@ import {
   createWatchman,
   deleteWatchman,
   updateWatchman,
-} from "../../services/adminWatchmanService";
+} from "../../services/adminWatchmanService.jsx";
 
 /* ---------------- EMPTY FORM ---------------- */
 const EMPTY_FORM = {
   id: null,
   username: "",
   email: "",
-  phone: "",
   is_active: true,
 };
 
@@ -22,15 +21,11 @@ const AdminWatchmen = () => {
 
   const [watchmen, setWatchmen] = useState([]);
   const [search, setSearch] = useState("");
-
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-
   const [popupMsg, setPopupMsg] = useState("");
-
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-
   const [form, setForm] = useState(EMPTY_FORM);
 
   const showPopup = (msg) => {
@@ -46,7 +41,6 @@ const AdminWatchmen = () => {
           id: w.id,
           username: w.username,
           email: w.email,
-          phone: w.phone || "",
           is_active: w.is_active === 1,
         }))
       );
@@ -56,23 +50,46 @@ const AdminWatchmen = () => {
     }
   };
 
-  useEffect(() => {
-    loadWatchmen();
-  }, []);
+useEffect(() => {
+  let isMounted = true; // flag to prevent state update if unmounted
+
+  const fetchData = async () => {
+    try {
+      const res = await fetchWatchmen();
+      if (isMounted) {
+        setWatchmen(
+          res.data.map((w) => ({
+            id: w.id,
+            username: w.username,
+            email: w.email,
+            is_active: w.is_active === 1,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      if (isMounted) showPopup("Failed to load watchmen");
+    }
+  };
+
+  fetchData();
+
+  return () => {
+    isMounted = false; // cleanup flag
+  };
+}, []);
 
   /* ---------------- SAVE ---------------- */
   const handleSave = async () => {
-    // Validate landline: STD code + number (e.g., 04423456789, 044-23456789)
-if (!/^(0\d{2,4}[- ]?\d{6,8})$/.test(form.phone)) {
-  return showPopup("Enter valid landline (ex: 04423456789 or 044-23456789)");
-}
+    if (!form.username || !form.email)
+      return showPopup("Username and Email required");
 
     try {
       if (editId) {
-        await updateWatchman(editId, adminId, form);
+        await updateWatchman(editId, form);
         showPopup("Watchman updated successfully");
       } else {
-        await createWatchman({ adminId, ...form });
+        await createWatchman(form);
         showPopup("Watchman added successfully");
       }
 
@@ -157,7 +174,6 @@ if (!/^(0\d{2,4}[- ]?\d{6,8})$/.test(form.phone)) {
             <tr>
               <th className="py-3">Name</th>
               <th>Email</th>
-              <th>Phone</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -170,7 +186,6 @@ if (!/^(0\d{2,4}[- ]?\d{6,8})$/.test(form.phone)) {
               >
                 <td className="py-2 font-medium">{w.username}</td>
                 <td>{w.email}</td>
-                <td>{w.phone}</td>
                 <td>
                   <span
                     className={`px-2 py-1 rounded text-sm ${
@@ -217,7 +232,10 @@ if (!/^(0\d{2,4}[- ]?\d{6,8})$/.test(form.phone)) {
               <h2 className="text-white font-semibold">
                 {editId ? "Edit Watchman" : "Add Watchman"}
               </h2>
-              <X onClick={() => setShowModal(false)} className="cursor-pointer" />
+              <X
+                onClick={() => setShowModal(false)}
+                className="cursor-pointer"
+              />
             </div>
 
             <div className="space-y-4">
@@ -233,23 +251,7 @@ if (!/^(0\d{2,4}[- ]?\d{6,8})$/.test(form.phone)) {
               <input
                 placeholder="Email"
                 value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
-                className="w-full px-3 py-2 bg-white/10 rounded text-white"
-              />
-
-              <input
-                placeholder="Phone"
-                value={form.phone}
-                onChange={(e) => {
-  const value = e.target.value;
-
-  // allow digits, dash, space only
-  if (/^[0-9\- ]*$/.test(value) && value.length <= 13) {
-    setForm({ ...form, phone: value });
-  }
-}}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full px-3 py-2 bg-white/10 rounded text-white"
               />
             </div>
