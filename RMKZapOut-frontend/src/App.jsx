@@ -48,9 +48,11 @@ import DEOProfile from "./components/DEO_Dashboard/DEOProfile.jsx";
 import DEONeedHelp from "./components/DEO_Dashboard/DEONeedHelp.jsx";
 import DEORequests from "./components/DEO_Dashboard/DEORequests.jsx";
 import WatchmanLayout from "./components/Watchman_Dashboard/WatchmanLayout.jsx";
-import WatchmanDashboard from "./components/Watchman_Dashboard/WatchmanDashboard.jsx";
+
 import WatchmanLogs from "./components/Watchman_Dashboard/WatchmanLogs.jsx";
 import WatchmanProfile from "./components/Watchman_Dashboard/WatchmanProfile.jsx";
+import ExitScan from "./components/Watchman_Dashboard/ExitScan.jsx";
+import EntryScan from "./components/Watchman_Dashboard/EntryScan.jsx";
 
 
 
@@ -116,7 +118,8 @@ const App = () => {
 
       {/* ================= WATCHMAN ================= */}
       <Route path="/watchman" element={<WatchmanLayout />}>
-        <Route path="dashboard" element={<WatchmanDashboard />} />
+        <Route path="exit-scan" element={<ExitScan />} />
+        <Route path="entry-scan" element={<EntryScan />} />
         <Route path="logs" element={<WatchmanLogs />} />
         <Route path="profile" element ={<WatchmanProfile />} />
       </Route>

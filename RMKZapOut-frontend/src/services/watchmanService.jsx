@@ -1,31 +1,38 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api/watchman", // change if needed
+  baseURL: `${import.meta.env.VITE_API_URL}/api/watchman`,
 });
 
 /* =====================================================
-   STUDENT FETCH (EXISTING — NO CHANGE)
+   🔴 EXIT SCAN (Fetch + Mark Exit)
 ===================================================== */
 
-// 🔹 IMPORTANT: return res.data
-export const getStudentByRegisterNumber = async (registerNumber) => {
-  const res = await API.get(`/${registerNumber}`);
+export const markExit = async (registerNumber) => {
+  const res = await API.post(`/exit/${registerNumber}`);
   return res.data;
 };
 
 
 /* =====================================================
-   WATCHMAN PROFILE
+   🟢 ENTRY SCAN (Fetch + Mark Entry)
 ===================================================== */
 
-// 🔹 Get watchman profile
+export const markEntry = async (registerNumber) => {
+  const res = await API.post(`/entry/${registerNumber}`);
+  return res.data;
+};
+
+
+/* =====================================================
+   👤 WATCHMAN PROFILE
+===================================================== */
+
 export const getWatchmanProfile = async (userId) => {
   const res = await API.get(`/profile/${userId}`);
   return res.data;
 };
 
-// 🔹 Update watchman profile
 export const updateWatchmanProfile = async (userId, data) => {
   const res = await API.put(`/profile/${userId}`, data);
   return res.data;

@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import Quagga from "quagga";
-import { markExit, markEntry } from "../../services/watchmanService.jsx";
+import { markExit } from "../../services/watchmanService.jsx";
 
-const WatchmanDashboard = () => {
-  const [activeTab, setActiveTab] = useState("EXIT");
+const ExitScan = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const lastScannedCodeRef = useRef(null); // same as EntryScan
 
   /* =====================================================
      HANDLE SCAN
@@ -22,18 +22,16 @@ const WatchmanDashboard = () => {
     setError(null);
 
     try {
-      const response =
-        activeTab === "EXIT"
-          ? await markExit(code)
-          : await markEntry(code);
-
+      const response = await markExit(code);
       setResult(response);
     } catch (err) {
       setError("Server error. Please try again. " + err.message);
     }
 
+    // reset processing and allow next scan
     setTimeout(() => {
       setProcessing(false);
+      lastScannedCodeRef.current = null;
     }, 2000);
   };
 
@@ -57,8 +55,6 @@ const WatchmanDashboard = () => {
   ===================================================== */
   useEffect(() => {
     if (!videoRef.current) return;
-
-    let lastScannedCode = null;
 
     Quagga.init(
       {
@@ -87,12 +83,10 @@ const WatchmanDashboard = () => {
     Quagga.onProcessed((res) => {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d", { willReadFrequently: true });
-
       if (!ctx || !res) return;
 
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (res.box) drawPath(ctx, res.box, "rgba(0,255,0,0.8)");
@@ -102,32 +96,28 @@ const WatchmanDashboard = () => {
       const code = data?.codeResult?.code;
       const confidence = data?.codeResult?.confidence;
 
-      if (!code || confidence < 0.6 || code === lastScannedCode) return;
+      if (!code || confidence < 0.6) return;
+      if (code === lastScannedCodeRef.current) return;
 
-      lastScannedCode = code;
+      lastScannedCodeRef.current = code;
       handleScan(code);
-
-      setTimeout(() => {
-        lastScannedCode = null;
-      }, 2000);
     });
 
     return () => {
       Quagga.stop();
+      Quagga.offDetected();
+      Quagga.offProcessed();
     };
-  }, [activeTab]);
+  }, []);
 
   /* =====================================================
-     MESSAGE COLOR LOGIC
+     MESSAGE COLOR
   ===================================================== */
   const getMessageColor = (message) => {
     if (!message) return "text-white";
-
     if (message.includes("Successfully")) return "text-green-400";
     if (message.includes("Already")) return "text-yellow-400";
-    if (message.includes("Not") || message.includes("No"))
-      return "text-red-400";
-
+    if (message.includes("Not") || message.includes("No")) return "text-red-400";
     return "text-white";
   };
 
@@ -138,41 +128,14 @@ const WatchmanDashboard = () => {
     <div className="p-8 min-h-screen bg-gradient-to-b from-[#0f2027] via-[#203a43] to-[#2c5364] text-white">
 
       <h1 className="text-4xl font-bold text-center text-[#52dbff] mb-8">
-        Watchman Dashboard
+        Exit Scanner
       </h1>
-
-      {/* Tabs */}
-      <div className="flex justify-center mb-8 space-x-6">
-        <button
-          onClick={() => setActiveTab("EXIT")}
-          className={`px-6 py-2 rounded-full font-bold ${
-            activeTab === "EXIT"
-              ? "bg-red-500"
-              : "bg-white/10 text-white/60"
-          }`}
-        >
-          🔴 Exit
-        </button>
-
-        <button
-          onClick={() => setActiveTab("ENTRY")}
-          className={`px-6 py-2 rounded-full font-bold ${
-            activeTab === "ENTRY"
-              ? "bg-green-500"
-              : "bg-white/10 text-white/60"
-          }`}
-        >
-          🟢 Entry
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
         {/* Scanner */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
-          <h2 className="text-xl font-semibold mb-4">
-            {activeTab === "EXIT" ? "Exit Scanner" : "Entry Scanner"}
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Exit Scanner</h2>
 
           <div className="relative w-full h-[350px] bg-black rounded-2xl overflow-hidden">
 
@@ -181,9 +144,7 @@ const WatchmanDashboard = () => {
             )}
 
             {error && (
-              <p className="text-red-400 absolute top-2 left-2">
-                {error}
-              </p>
+              <p className="text-red-400 absolute top-2 left-2">{error}</p>
             )}
 
             <div ref={videoRef} className="w-full h-full" />
@@ -197,17 +158,13 @@ const WatchmanDashboard = () => {
         {/* Result Panel */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl flex items-center justify-center">
           {!result ? (
-            <p className="text-white/40 text-lg">
-              Scan a student barcode
-            </p>
+            <p className="text-white/40 text-lg">Scan a student barcode</p>
           ) : (
             <div className="text-center animate-fadeIn space-y-3">
 
               {result.student && (
                 <>
-                  <h2 className="text-2xl font-bold text-[#52dbff]">
-                    {result.student.name}
-                  </h2>
+                  <h2 className="text-2xl font-bold text-[#52dbff]">{result.student.name}</h2>
                   <p>Register No: {result.student.register_number}</p>
                   <p>Department: {result.student.department}</p>
                   <p>Year: {result.student.year_of_study}</p>
@@ -222,11 +179,7 @@ const WatchmanDashboard = () => {
                 </div>
               )}
 
-              <div
-                className={`mt-4 text-xl font-bold ${getMessageColor(
-                  result.message
-                )}`}
-              >
+              <div className={`mt-4 text-xl font-bold ${getMessageColor(result.message)}`}>
                 {result.message}
               </div>
             </div>
@@ -255,4 +208,4 @@ const WatchmanDashboard = () => {
   );
 };
 
-export default WatchmanDashboard;
+export default ExitScan;
