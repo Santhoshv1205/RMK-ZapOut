@@ -19,6 +19,7 @@ const DEOProfile = () => {
   const userData = JSON.parse(localStorage.getItem("user"));
   const userId = userData?.id;
 
+  /* ---------- FETCH PROFILE ---------- */
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -34,13 +35,42 @@ const DEOProfile = () => {
     if (userId) fetchProfile();
   }, [userId]);
 
+  /* ---------- AUTO CLEAR MESSAGE ---------- */
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(""), 3000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  /* ---------- HANDLE INPUT ---------- */
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
+  /* ---------- VALIDATION ---------- */
+  const validateProfile = () => {
+    // Phone: exactly 10 digits
+    if (!/^\d{10}$/.test(profile.phone)) {
+      setMessage("Phone number must be exactly 10 digits ❌");
+      return false;
+    }
+
+    // Email: valid format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+      setMessage("Invalid email format ❌");
+      return false;
+    }
+
+    return true;
+  };
+
+  /* ---------- SAVE PROFILE ---------- */
   const handleSave = async () => {
+    if (!validateProfile()) return;
+
     try {
       setSaving(true);
+
       await updateDeoProfile(userId, {
         username: profile.username,
         phone: profile.phone,
@@ -63,8 +93,8 @@ const DEOProfile = () => {
   return (
     <div className="min-h-screen bg-[#0b1120] text-white p-8">
       <div className="max-w-4xl mx-auto bg-[#111827] rounded-2xl shadow-2xl p-8">
-        
-        {/* Header */}
+
+        {/* HEADER */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">DEO Profile</h1>
@@ -92,11 +122,13 @@ const DEOProfile = () => {
         </div>
 
         {message && (
-          <div className="mb-6 text-sm text-green-400">{message}</div>
+          <div className="mb-6 text-sm text-red-400">{message}</div>
         )}
 
-        {/* Personal Info */}
+        {/* PROFILE INFO */}
         <div className="grid md:grid-cols-2 gap-6">
+
+          {/* Full Name */}
           <div>
             <label className="text-gray-400 text-sm">Full Name</label>
             <input
@@ -109,18 +141,24 @@ const DEOProfile = () => {
             />
           </div>
 
+          {/* Phone - DIGITS ONLY */}
           <div>
             <label className="text-gray-400 text-sm">Phone Number</label>
             <input
               type="text"
               name="phone"
               value={profile.phone}
-              onChange={handleChange}
               disabled={!editMode}
+              maxLength="10"
+              onChange={(e) => {
+                const onlyNumbers = e.target.value.replace(/\D/g, "");
+                setProfile({ ...profile, phone: onlyNumbers });
+              }}
               className="w-full mt-1 bg-[#1f2937] p-3 rounded-lg focus:outline-none"
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="text-gray-400 text-sm">Email</label>
             <input
@@ -131,6 +169,7 @@ const DEOProfile = () => {
             />
           </div>
 
+          {/* Role */}
           <div>
             <label className="text-gray-400 text-sm">Role</label>
             <input
@@ -141,6 +180,7 @@ const DEOProfile = () => {
             />
           </div>
 
+          {/* Department */}
           <div>
             <label className="text-gray-400 text-sm">Department</label>
             <input
@@ -151,6 +191,7 @@ const DEOProfile = () => {
             />
           </div>
 
+          {/* Academic Type */}
           <div>
             <label className="text-gray-400 text-sm">Academic Type</label>
             <input
@@ -160,6 +201,7 @@ const DEOProfile = () => {
               className="w-full mt-1 bg-[#1f2937] p-3 rounded-lg opacity-70 cursor-not-allowed"
             />
           </div>
+
         </div>
       </div>
     </div>
