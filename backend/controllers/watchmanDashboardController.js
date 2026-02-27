@@ -1,5 +1,18 @@
 import db from "../config/db.js";
+import { sendWhatsAppMessage } from "../services/whatsapp/whatsappService.js";
 
+const formatDateTime = (dateValue) => {
+  if (!dateValue) return "-";
+
+  return new Date(dateValue).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 /*
 =========================================
 🔴 EXIT ENDPOINT
@@ -58,12 +71,43 @@ LIMIT 1`,
     const gatePass = gateRows[0];
 
     // 3️⃣ Mark Exit
-    await db.query(
-      `UPDATE gate_pass_details
-       SET exit_datetime = NOW()
-       WHERE id = ?`,
-      [gatePass.id]
-    );
+  // 3️⃣ Mark Exit
+await db.query(
+  `UPDATE gate_pass_details
+   SET exit_datetime = NOW()
+   WHERE id = ?`,
+  [gatePass.id]
+);
+
+// Get parent number
+const [parentRows] = await db.query(
+  `SELECT father_mobile, mother_mobile, guardian_mobile
+   FROM students
+   WHERE id = ?`,
+  [student.student_id]
+);
+
+const parent =
+  parentRows[0].guardian_mobile ||
+  parentRows[0].father_mobile ||
+  parentRows[0].mother_mobile;
+
+if (parent) {
+  const message = `🎓 *RMK ZapOut Alert*
+
+ *${student.name}* (${student.register_number})
+has safely exited the campus as per the approved gate pass.
+
+📝 *Reason:* ${gatePass.reason}
+📅 *From Date:* ${gatePass.from_date}
+📅 *To Date:* ${gatePass.to_date}
+⏰ *Exit Time:* ${formatDateTime(new Date())}
+
+Regards,
+RMK Engineering College`;
+
+  await sendWhatsAppMessage(parent, message);
+}
 
     return res.json({
       student,
@@ -141,12 +185,43 @@ export const scanAndMarkEntry = async (req, res) => {
     const gatePass = gateRows[0];
 
     // 3️⃣ Mark Entry
-    await db.query(
-      `UPDATE gate_pass_details
-       SET entry_datetime = NOW()
-       WHERE id = ?`,
-      [gatePass.id]
-    );
+    // 3️⃣ Mark Entry
+await db.query(
+  `UPDATE gate_pass_details
+   SET entry_datetime = NOW()
+   WHERE id = ?`,
+  [gatePass.id]
+);
+
+// Get parent number
+const [parentRows] = await db.query(
+  `SELECT father_mobile, mother_mobile, guardian_mobile
+   FROM students
+   WHERE id = ?`,
+  [student.student_id]
+);
+
+const parent =
+  parentRows[0].guardian_mobile ||
+  parentRows[0].father_mobile ||
+  parentRows[0].mother_mobile;
+
+if (parent) {
+  const message = `🎓 *RMK ZapOut Alert*
+
+ *${student.name}* (${student.register_number})
+has RETURNED to the campus.
+
+📝 *Reason:* ${gatePass.reason}
+⏰ *Entry Time:* ${formatDateTime(new Date())}
+
+We are happy to inform you that *${student.name}*  has safely reached our campus.
+
+Regards,
+RMK Engineering College`;
+
+  await sendWhatsAppMessage(parent, message);
+}
 
     return res.json({
       student,

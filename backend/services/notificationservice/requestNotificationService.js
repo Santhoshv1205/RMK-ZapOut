@@ -78,9 +78,7 @@ export const notifyStageChange = async (requestId, stage, staffId, staffRole) =>
     /* ================= PARENT NUMBER ================= */
 
     const parentPhone =
-      data.guardian_mobile ||
-      data.father_mobile ||
-      data.mother_mobile;
+      data.guardian_mobile && data.father_mobile && data.mother_mobile;
 
     if (!parentPhone) {
       console.log("No parent phone available");
