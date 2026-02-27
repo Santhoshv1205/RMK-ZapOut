@@ -10,6 +10,7 @@ const OnDutyForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
 
   const [submitting, setSubmitting] = useState(false); // ✅ added
 
@@ -100,8 +101,15 @@ const OnDutyForm = () => {
 
       await applyOnDuty(fd);
 
-      alert("On-Duty request submitted successfully");
+setPopup({
+  show: true,
+  message: "On-Duty request submitted successfully",
+  type: "success",
+});
 
+setTimeout(() => {
+  setPopup({ show: false, message: "", type: "" });
+}, 2500);
       setForm({
         eventType: "",
         eventName: "",
@@ -112,7 +120,15 @@ const OnDutyForm = () => {
         proof: null,
       });
     } catch (err) {
-      alert(err.response?.data?.message || "Submission failed");
+setPopup({
+  show: true,
+  message: err.response?.data?.message || "Submission failed",
+  type: "error",
+});
+
+setTimeout(() => {
+  setPopup({ show: false, message: "", type: "" });
+}, 2500);
     } finally {
       setSubmitting(false); // ✅ stop loading
     }
@@ -224,14 +240,30 @@ const OnDutyForm = () => {
         </Section>
       )}
 
+     
+
       {/* ================= SUBMIT BUTTON ================= */}
-      <button
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="mt-6 px-8 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:scale-105 transition disabled:opacity-50"
-      >
-        {submitting ? "Submitting..." : "Submit On-Duty"}
-      </button>
+<button
+  onClick={handleSubmit}
+  disabled={submitting}
+  className="mt-6 px-8 py-3 rounded-xl bg-cyan-400 text-black font-semibold hover:scale-105 transition disabled:opacity-50"
+>
+  {submitting ? "Submitting..." : "Submit On-Duty"}
+</button>
+
+{/* ✅ ADD THIS POPUP BLOCK HERE */}
+{popup.show && (
+  <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div
+      className="px-8 py-4 rounded-2xl shadow-lg backdrop-blur-xl 
+                 bg-cyan-400 border border-cyan-400 text-cyan-300
+                 transition-all duration-300"
+    >
+      {popup.message}
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

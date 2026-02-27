@@ -259,8 +259,7 @@ return (
   {r.proof_file && !isEditing && (
     <button
       onClick={() => setPreviewFile(r.proof_file)}
-      className="flex items-center gap-2 text-[#00d3d1] hover:underline"
-    >
+className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00d3d1] text-black font-semibold hover:opacity-90 transition"    >
       <FileText size={16} />
       View Uploaded Proof
     </button>

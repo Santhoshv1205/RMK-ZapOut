@@ -6,6 +6,7 @@ const GatepassForm = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [popup, setPopup] = useState({ show: false, message: "" });
 
   const [form, setForm] = useState({
     // student details
@@ -121,11 +122,25 @@ const GatepassForm = () => {
         guardian_address: form.guardian_address,
       });
 
-      alert("Gate Pass request submitted successfully");
+setPopup({
+  show: true,
+  message: "Gate Pass request submitted successfully",
+});
+
+setTimeout(() => {
+  setPopup({ show: false, message: "" });
+}, 2500);
       resetGatepassFields();
     } catch (err) {
       console.error(err);
-      alert("Failed to submit Gate Pass request");
+setPopup({
+  show: true,
+  message: "Failed to submit Gate Pass request",
+});
+
+setTimeout(() => {
+  setPopup({ show: false, message: "" });
+}, 2500);
     } finally {
       setSubmitting(false);
     }
@@ -247,8 +262,18 @@ const GatepassForm = () => {
         >
           {submitting ? "Submitting..." : "Submit Gate Pass Request"}
         </button>
-      </div>
+
+{/* ✅ ADD POPUP HERE */}
+{popup.show && (
+  <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="px-8 py-4 rounded-2xl shadow-lg bg-cyan-400 text-black">
+      {popup.message}
     </div>
+  </div>
+)}
+
+</div>
+</div>
   );
 };
 
