@@ -73,6 +73,11 @@ const AdminLayout = () => {
             path="/admin/staffs"
           />
           <SidebarItem
+            icon={<ClipboardList size={18} />}
+            label="Watchman"
+            path="/admin/watchman"
+          />
+          <SidebarItem
             icon={<Building2 size={18} />}
             label="Departments"
             path="/admin/departments"
@@ -87,13 +92,7 @@ const AdminLayout = () => {
             label="Notifications"
             path="/admin/notifications"
           />
-          {/*
-          <SidebarItem
-            icon={<ClipboardList size={18} />}
-            label="Audit Logs"
-            path="/admin/audit-logs"
-          />
-          */}
+          
           <SidebarItem
             icon={<Settings size={18} />}
             label="Settings"

@@ -34,7 +34,7 @@ import AdminStaffs from "./components/Admin_Dashboard/AdminStaffs.jsx";
 import Departments from "./components/Admin_Dashboard/Departments.jsx";
 import AdminReports from "./components/Admin_Dashboard/AdminReports.jsx";
 import AdminNotifications from "./components/Admin_Dashboard/AdminNotifications.jsx";
-import AuditLogs from "./components/Admin_Dashboard/AuditLogs.jsx";
+import AdminWatchman from "./components/Admin_Dashboard/AdminWatchman.jsx";
 import AdminSettings from "./components/Admin_Dashboard/AdminSettings.jsx";
 import { NotificationProvider } from "./components/context/NotificationContext.jsx";
 import { RequestBadgeProvider } from "./components/context/RequestBadgeContext.jsx";
@@ -103,7 +103,7 @@ const App = () => {
         <Route path="departments" element={<Departments />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="notifications" element={<AdminNotifications />} />
-        <Route path="audit-logs" element={<AuditLogs />} />
+        <Route path="watchman" element={<AdminWatchman />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 
