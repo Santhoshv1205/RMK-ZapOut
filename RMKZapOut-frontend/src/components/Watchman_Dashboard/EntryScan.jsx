@@ -46,6 +46,27 @@ const formatDateTime = (date) => {
     hour12: true,
   });
 };
+const [manualRegNo, setManualRegNo] = useState("");
+const [manualLoading, setManualLoading] = useState(false);
+const handleManualEntry = async () => {
+  if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
+    setError("Enter valid 12 digit Register Number");
+    return;
+  }
+
+  setManualLoading(true);
+  setError(null);
+
+  try {
+    const response = await markEntry(manualRegNo);
+    setResult(response);
+    setManualRegNo("");
+  } catch (err) {
+    setError("Server error. Please try again." + err.message);
+  }
+
+  setManualLoading(false);
+};
   /* =====================================================
      DRAW DETECTION BOX
   ===================================================== */
@@ -150,6 +171,30 @@ const formatDateTime = (date) => {
 
         {/* Scanner */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
+        {/* Manual Entry Section */}
+<div className="mb-6 space-y-3">
+  <h3 className="text-lg font-semibold text-[#52dbff]">
+    Manual Entry
+  </h3>
+
+  <div className="flex gap-3">
+    <input
+      type="text"
+      placeholder="Enter Register Number"
+      value={manualRegNo}
+      onChange={(e) => setManualRegNo(e.target.value)}
+      className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
+    />
+
+    <button
+      onClick={handleManualEntry}
+      disabled={manualLoading}
+      className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-xl font-semibold"
+    >
+      {manualLoading ? "Updating..." : "Mark Entry"}
+    </button>
+  </div>
+</div>
           <h2 className="text-xl font-semibold mb-4">
             Entry Scanner
           </h2>

@@ -6,11 +6,30 @@ const ExitScan = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
-
+const [manualRegNo, setManualRegNo] = useState("");
+const [manualLoading, setManualLoading] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const lastScannedCodeRef = useRef(null); // same as EntryScan
+const handleManualExit = async () => {
+  if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
+    setError("Enter valid 12 digit Register Number");
+    return;
+  }
 
+  setManualLoading(true);
+  setError(null);
+
+  try {
+    const response = await markExit(manualRegNo);
+    setResult(response);
+    setManualRegNo("");
+  } catch (err) {
+    setError("Server error. Please try again. " + err.message);
+  }
+
+  setManualLoading(false);
+};
   /* =====================================================
      HANDLE SCAN
   ===================================================== */
@@ -136,6 +155,30 @@ const ExitScan = () => {
         {/* Scanner */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
           <h2 className="text-xl font-semibold mb-4">Exit Scanner</h2>
+          {/* Manual Exit Section */}
+<div className="mb-6 space-y-3">
+  <h3 className="text-lg font-semibold text-[#52dbff]">
+    Manual Exit
+  </h3>
+
+  <div className="flex gap-3">
+    <input
+      type="text"
+      placeholder="Enter Register Number"
+      value={manualRegNo}
+      onChange={(e) => setManualRegNo(e.target.value)}
+      className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
+    />
+
+    <button
+      onClick={handleManualExit}
+      disabled={manualLoading}
+      className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl font-semibold"
+    >
+      {manualLoading ? "Updating..." : "Mark Exit"}
+    </button>
+  </div>
+</div>
 
           <div className="relative w-full h-[350px] bg-black rounded-2xl overflow-hidden">
 
