@@ -33,40 +33,44 @@ const EntryScan = () => {
       lastScannedCodeRef.current = null;
     }, 2000);
   };
-const formatDateTime = (date) => {
-  if (!date) return "-";
 
-  return new Date(date).toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-const [manualRegNo, setManualRegNo] = useState("");
-const [manualLoading, setManualLoading] = useState(false);
-const handleManualEntry = async () => {
-  if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
-    setError("Enter valid 12 digit Register Number");
-    return;
-  }
+  const formatDateTime = (date) => {
+    if (!date) return "-";
 
-  setManualLoading(true);
-  setError(null);
+    return new Date(date).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
-  try {
-    const response = await markEntry(manualRegNo);
-    setResult(response);
-    setManualRegNo("");
-  } catch (err) {
-    setError("Server error. Please try again." + err.message);
-  }
+  const [manualRegNo, setManualRegNo] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
 
-  setManualLoading(false);
-};
+  const handleManualEntry = async () => {
+    if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
+      setError("Enter valid 12 digit Register Number");
+      return;
+    }
+
+    setManualLoading(true);
+    setError(null);
+
+    try {
+      const response = await markEntry(manualRegNo);
+      setResult(response);
+      setManualRegNo("");
+    } catch (err) {
+      setError("Server error. Please try again." + err.message);
+    }
+
+    setManualLoading(false);
+  };
+
   /* =====================================================
      DRAW DETECTION BOX
   ===================================================== */
@@ -116,7 +120,6 @@ const handleManualEntry = async () => {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d", { willReadFrequently: true });
 
-
       if (!ctx || !res) return;
 
       canvas.width = videoRef.current.videoWidth;
@@ -146,18 +149,6 @@ const handleManualEntry = async () => {
   }, []);
 
   /* =====================================================
-     MESSAGE COLOR
-  ===================================================== */
-  const getMessageColor = (message) => {
-    if (!message) return "text-white";
-    if (message.includes("Successfully")) return "text-green-400";
-    if (message.includes("Already")) return "text-yellow-400";
-    if (message.includes("Not") || message.includes("No"))
-      return "text-red-400";
-    return "text-white";
-  };
-
-  /* =====================================================
      UI
   ===================================================== */
   return (
@@ -171,30 +162,32 @@ const handleManualEntry = async () => {
 
         {/* Scanner */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
-        {/* Manual Entry Section */}
-<div className="mb-6 space-y-3">
-  <h3 className="text-lg font-semibold text-[#52dbff]">
-    Manual Entry
-  </h3>
 
-  <div className="flex gap-3">
-    <input
-      type="text"
-      placeholder="Enter Register Number"
-      value={manualRegNo}
-      onChange={(e) => setManualRegNo(e.target.value)}
-      className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
-    />
+          {/* Manual Entry Section */}
+          <div className="mb-6 space-y-3">
+            <h3 className="text-lg font-semibold text-[#52dbff]">
+              Manual Entry
+            </h3>
 
-    <button
-      onClick={handleManualEntry}
-      disabled={manualLoading}
-      className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-xl font-semibold"
-    >
-      {manualLoading ? "Updating..." : "Mark Entry"}
-    </button>
-  </div>
-</div>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Enter Register Number"
+                value={manualRegNo}
+                onChange={(e) => setManualRegNo(e.target.value)}
+                className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
+              />
+
+              <button
+                onClick={handleManualEntry}
+                disabled={manualLoading}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-xl font-semibold"
+              >
+                {manualLoading ? "Updating..." : "Mark Entry"}
+              </button>
+            </div>
+          </div>
+
           <h2 className="text-xl font-semibold mb-4">
             Entry Scanner
           </h2>
@@ -219,54 +212,114 @@ const handleManualEntry = async () => {
           </div>
         </div>
 
-        {/* Result Panel */}
+        {/* ================= RESULT PANEL (UPDATED UI) ================= */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl flex items-center justify-center">
+
           {!result ? (
             <p className="text-white/40 text-lg">
               Scan a student barcode
             </p>
           ) : (
-            <div className="text-center animate-fadeIn space-y-3">
+            <div className="w-full max-w-md animate-fadeIn">
 
+              {/* STATUS BADGE */}
+              <div className="flex justify-center mb-6">
+                <span
+                  className={`px-5 py-2 rounded-full text-sm font-semibold tracking-wide
+                  ${
+                    result.message?.includes("Successfully")
+                      ? "bg-green-500/20 text-green-400 border border-green-400/30"
+                      : result.message?.includes("Already")
+                      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-400/30"
+                      : "bg-red-500/20 text-red-400 border border-red-400/30"
+                  }`}
+                >
+                  {result.message}
+                </span>
+              </div>
+
+              {/* STUDENT CARD */}
               {result.student && (
-                <>
-                  <h2 className="text-2xl font-bold text-[#52dbff]">
-                    {result.student.name}
-                  </h2>
-                  <p>Register No: {result.student.register_number}</p>
-                  <p>Department: {result.student.department}</p>
-                  <p>Year: {result.student.year_of_study}</p>
-                </>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-[#52dbff]">
+                      {result.student.name}
+                    </h2>
+                    <p className="text-white/50 text-sm">Student Details</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-white/40">Register No</p>
+                      <p className="font-semibold">
+                        {result.student.register_number}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-white/40">Department</p>
+                      <p className="font-semibold">
+                        {result.student.department}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-white/40">Year</p>
+                      <p className="font-semibold">
+                        {result.student.year_of_study}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
 
-             {result.gatePass && (
-  <div className="mt-4 text-sm text-white/70 space-y-1">
-    <p>Reason: {result.gatePass.reason}</p>
+              {/* GATEPASS CARD */}
+              {result.gatePass && (
+                <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
 
-    <p>From: {formatDateTime(result.gatePass.from_date)}</p>
-    <p>To: {formatDateTime(result.gatePass.to_date)}</p>
+                  <h3 className="text-lg font-semibold text-[#52dbff] text-center">
+                    Gate Pass Details
+                  </h3>
 
-    {result.gatePass.exit_datetime && (
-      <p className="text-yellow-400 font-medium">
-        Exit Time: {formatDateTime(result.gatePass.exit_datetime)}
-      </p>
-    )}
+                  <div className="space-y-2 text-sm">
 
-    {result.gatePass.entry_datetime && (
-      <p className="text-green-400 font-semibold">
-        Entry Time: {formatDateTime(result.gatePass.entry_datetime)}
-      </p>
-    )}
-  </div>
-)}
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Reason</span>
+                      <span>{result.gatePass.reason}</span>
+                    </div>
 
-              <div
-                className={`mt-4 text-xl font-bold ${getMessageColor(
-                  result.message
-                )}`}
-              >
-                {result.message}
-              </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/40">From</span>
+                      <span>{formatDateTime(result.gatePass.from_date)}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-white/40">To</span>
+                      <span>{formatDateTime(result.gatePass.to_date)}</span>
+                    </div>
+
+                    {result.gatePass.exit_datetime && (
+                      <div className="flex justify-between">
+                        <span className="text-white/40">Exit Time</span>
+                        <span className="text-yellow-400 font-medium">
+                          {formatDateTime(result.gatePass.exit_datetime)}
+                        </span>
+                      </div>
+                    )}
+
+                    {result.gatePass.entry_datetime && (
+                      <div className="flex justify-between border-t border-white/10 pt-3 mt-3">
+                        <span className="text-white/40">Entry Time</span>
+                        <span className="text-green-400 font-semibold">
+                          {formatDateTime(result.gatePass.entry_datetime)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </div>

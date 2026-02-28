@@ -188,12 +188,12 @@ const AdminStaffs = () => {
       s.username.toLowerCase().includes(search.toLowerCase()) ||
       s.email.toLowerCase().includes(search.toLowerCase());
 
-    const matchRole =
-      roleFilter === "All"
-        ? true
-        : roleFilter === "OTHERS"
-        ? !["COUNSELLOR", "COORDINATOR", "HOD", "DEO"].includes(s.role)
-        : s.role === roleFilter;
+   const matchRole =
+  roleFilter === "All"
+    ? true
+    : roleFilter === "OTHERS"
+    ? ["ADMIN", "DEO"].includes(s.role)
+    : s.role === roleFilter;
 
     return matchSearch && matchRole;
   });
@@ -214,7 +214,7 @@ const AdminStaffs = () => {
               setForm(EMPTY_FORM);
               setShowModal(true);
             }}
-            className="px-4 py-2 rounded-xl bg-cyan-600 text-black font-medium"
+            className="px-4 py-2 rounded-xl bg-cyan-300 text-black font-medium"
           >
             <UserPlus size={16} className="inline mr-1" />
             Add Staff

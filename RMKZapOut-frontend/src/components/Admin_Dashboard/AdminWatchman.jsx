@@ -148,7 +148,7 @@ useEffect(() => {
               setForm(EMPTY_FORM);
               setShowModal(true);
             }}
-            className="px-4 py-2 rounded-xl bg-cyan-600 text-black font-medium"
+            className="px-4 py-2 rounded-xl bg-cyan-300 text-black font-medium"
           >
             <UserPlus size={16} className="inline mr-1" />
             Add Watchman

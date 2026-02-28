@@ -6,30 +6,33 @@ const ExitScan = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
-const [manualRegNo, setManualRegNo] = useState("");
-const [manualLoading, setManualLoading] = useState(false);
+  const [manualRegNo, setManualRegNo] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const lastScannedCodeRef = useRef(null); // same as EntryScan
-const handleManualExit = async () => {
-  if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
-    setError("Enter valid 12 digit Register Number");
-    return;
-  }
+  const lastScannedCodeRef = useRef(null);
 
-  setManualLoading(true);
-  setError(null);
+  const handleManualExit = async () => {
+    if (!manualRegNo || !/^\d{12}$/.test(manualRegNo)) {
+      setError("Enter valid 12 digit Register Number");
+      return;
+    }
 
-  try {
-    const response = await markExit(manualRegNo);
-    setResult(response);
-    setManualRegNo("");
-  } catch (err) {
-    setError("Server error. Please try again. " + err.message);
-  }
+    setManualLoading(true);
+    setError(null);
 
-  setManualLoading(false);
-};
+    try {
+      const response = await markExit(manualRegNo);
+      setResult(response);
+      setManualRegNo("");
+    } catch (err) {
+      setError("Server error. Please try again. " + err.message);
+    }
+
+    setManualLoading(false);
+  };
+
   /* =====================================================
      HANDLE SCAN
   ===================================================== */
@@ -47,7 +50,6 @@ const handleManualExit = async () => {
       setError("Server error. Please try again. " + err.message);
     }
 
-    // reset processing and allow next scan
     setTimeout(() => {
       setProcessing(false);
       lastScannedCodeRef.current = null;
@@ -130,17 +132,6 @@ const handleManualExit = async () => {
   }, []);
 
   /* =====================================================
-     MESSAGE COLOR
-  ===================================================== */
-  const getMessageColor = (message) => {
-    if (!message) return "text-white";
-    if (message.includes("Successfully")) return "text-green-400";
-    if (message.includes("Already")) return "text-yellow-400";
-    if (message.includes("Not") || message.includes("No")) return "text-red-400";
-    return "text-white";
-  };
-
-  /* =====================================================
      UI
   ===================================================== */
   return (
@@ -155,33 +146,33 @@ const handleManualExit = async () => {
         {/* Scanner */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl">
           <h2 className="text-xl font-semibold mb-4">Exit Scanner</h2>
+
           {/* Manual Exit Section */}
-<div className="mb-6 space-y-3">
-  <h3 className="text-lg font-semibold text-[#52dbff]">
-    Manual Exit
-  </h3>
+          <div className="mb-6 space-y-3">
+            <h3 className="text-lg font-semibold text-[#52dbff]">
+              Manual Exit
+            </h3>
 
-  <div className="flex gap-3">
-    <input
-      type="text"
-      placeholder="Enter Register Number"
-      value={manualRegNo}
-      onChange={(e) => setManualRegNo(e.target.value)}
-      className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
-    />
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Enter Register Number"
+                value={manualRegNo}
+                onChange={(e) => setManualRegNo(e.target.value)}
+                className="flex-1 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white outline-none"
+              />
 
-    <button
-      onClick={handleManualExit}
-      disabled={manualLoading}
-      className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl font-semibold"
-    >
-      {manualLoading ? "Updating..." : "Mark Exit"}
-    </button>
-  </div>
-</div>
+              <button
+                onClick={handleManualExit}
+                disabled={manualLoading}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl font-semibold"
+              >
+                {manualLoading ? "Updating..." : "Mark Exit"}
+              </button>
+            </div>
+          </div>
 
           <div className="relative w-full h-[350px] bg-black rounded-2xl overflow-hidden">
-
             {processing && (
               <div className="absolute w-full h-[2px] bg-yellow-400 animate-scan top-0"></div>
             )}
@@ -198,39 +189,109 @@ const handleManualExit = async () => {
           </div>
         </div>
 
-        {/* Result Panel */}
+        {/* ================= RESULT PANEL (UPDATED UI) ================= */}
         <div className="bg-white/5 border border-white/10 rounded-3xl p-6 shadow-2xl flex items-center justify-center">
+
           {!result ? (
             <p className="text-white/40 text-lg">Scan a student barcode</p>
           ) : (
-            <div className="text-center animate-fadeIn space-y-3">
+            <div className="w-full max-w-md animate-fadeIn">
 
+              {/* STATUS BADGE */}
+              <div className="flex justify-center mb-6">
+                <span
+                  className={`px-5 py-2 rounded-full text-sm font-semibold tracking-wide
+                  ${
+                    result.message?.includes("Successfully")
+                      ? "bg-green-500/20 text-green-400 border border-green-400/30"
+                      : result.message?.includes("Already")
+                      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-400/30"
+                      : "bg-red-500/20 text-red-400 border border-red-400/30"
+                  }`}
+                >
+                  {result.message}
+                </span>
+              </div>
+
+              {/* STUDENT CARD */}
               {result.student && (
-                <>
-                  <h2 className="text-2xl font-bold text-[#52dbff]">{result.student.name}</h2>
-                  <p>Register No: {result.student.register_number}</p>
-                  <p>Department: {result.student.department}</p>
-                  <p>Year: {result.student.year_of_study}</p>
-                </>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-[#52dbff]">
+                      {result.student.name}
+                    </h2>
+                    <p className="text-white/50 text-sm">Student Details</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-white/40">Register No</p>
+                      <p className="font-semibold">
+                        {result.student.register_number}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-white/40">Department</p>
+                      <p className="font-semibold">
+                        {result.student.department}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-white/40">Year</p>
+                      <p className="font-semibold">
+                        {result.student.year_of_study}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
 
-             {result.gatePass && (
-  <div className="mt-4 text-sm text-white/70">
-    <p>Reason: {result.gatePass.reason}</p>
-    <p>From: {new Date(result.gatePass.from_date).toLocaleString("en-IN")}</p>
-    <p>To: {new Date(result.gatePass.to_date).toLocaleString("en-IN")}</p>
+              {/* GATEPASS CARD */}
+              {result.gatePass && (
+                <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
 
-    {result.gatePass.exit_datetime && (
-      <p className="text-green-400 font-semibold">
-        Exit Time: {new Date(result.gatePass.exit_datetime).toLocaleString("en-IN")}
-      </p>
-    )}
-  </div>
-)}
+                  <h3 className="text-lg font-semibold text-[#52dbff] text-center">
+                    Gate Pass Details
+                  </h3>
 
-              <div className={`mt-4 text-xl font-bold ${getMessageColor(result.message)}`}>
-                {result.message}
-              </div>
+                  <div className="space-y-2 text-sm">
+
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Reason</span>
+                      <span>{result.gatePass.reason}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-white/40">From</span>
+                      <span>
+                        {new Date(result.gatePass.from_date).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-white/40">To</span>
+                      <span>
+                        {new Date(result.gatePass.to_date).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    {result.gatePass.exit_datetime && (
+                      <div className="flex justify-between border-t border-white/10 pt-3 mt-3">
+                        <span className="text-white/40">Exit Time</span>
+                        <span className="text-green-400 font-semibold">
+                          {new Date(
+                            result.gatePass.exit_datetime
+                          ).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </div>
