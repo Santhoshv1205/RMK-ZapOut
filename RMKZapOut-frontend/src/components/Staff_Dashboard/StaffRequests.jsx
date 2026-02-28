@@ -35,7 +35,7 @@ const STATUS_LABEL = {
   REJECTED: "Rejected",
 };
 
-const STAGES = ["SUBMITTED", "COUNSELLOR", "COORDINATOR", "HOD", "WARDEN"];
+const STAGES = ["SUBMITTED", "COUNSELLOR", "COORDINATOR", "HOD"];
 
 const StaffRequests = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -48,6 +48,16 @@ const [previewType, setPreviewType] = useState(null);
  const [filter, setFilter] = useState("All");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionPopup, setActionPopup] = useState(null);
+  useEffect(() => {
+  if (!actionPopup) return;
+
+  const timer = setTimeout(() => {
+    setActionPopup(null);
+  }, 2500); // popup disappears after 2.5 sec
+
+  return () => clearTimeout(timer);
+}, [actionPopup]);
 
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
@@ -79,8 +89,7 @@ const [previewType, setPreviewType] = useState(null);
         }
 
         if (role === "HOD" && r.current_stage === "HOD") actionable = true;
-        if (role === "WARDEN" && r.current_stage === "WARDEN")
-          actionable = true;
+        
 
         return { ...r, actionable };
       });
@@ -115,15 +124,16 @@ const loadPreview = async (url) => {
 
   /* ================= ACTIONS ================= */
 
-  const handleApprove = async (id) => {
-    try {
-      await updateRequestStatus(id, role, "APPROVE", staffId);
-      await loadRequests();
-    } catch (err) {
-      console.error(err);
-      alert("Approval failed");
-    }
-  };
+ const handleApprove = async (id) => {
+  try {
+    await updateRequestStatus(id, role, "APPROVE", staffId);
+    setActionPopup("approved");
+    await loadRequests();
+  } catch (err) {
+    console.error(err);
+    setActionPopup("failed");
+  }
+};
 
   const handleRejectSubmit = async () => {
     if (!rejectReason.trim()) return alert("Enter rejection reason");
@@ -139,6 +149,7 @@ const loadPreview = async (url) => {
       setShowRejectModal(false);
       setRejectReason("");
       await loadRequests();
+      setActionPopup("rejected");
     } catch (err) {
       console.error(err);
       alert("Rejection failed");
@@ -178,8 +189,7 @@ const loadPreview = async (url) => {
         return "Waiting for Coordinator";
       case "HOD":
         return "Waiting for HOD";
-      case "WARDEN":
-        return "Waiting for Warden";
+      
       case "SUBMITTED":
         return STATUS_LABEL[r.status] || "Submitted";
       default:
@@ -201,13 +211,15 @@ const loadPreview = async (url) => {
       <div className="flex items-center gap-2">
         <Filter size={18} />
         <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="bg-white/10 border border-white/20 rounded-lg px-3 py-2"
-        >
+  value={filter}
+  onChange={(e) => setFilter(e.target.value)}
+  className="bg-[#1e293b] text-white border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+>
           {FILTERS.map((f) => (
-            <option key={f}>{f}</option>
-          ))}
+  <option key={f} className="bg-[#1e293b] text-white">
+    {f}
+  </option>
+))}
         </select>
       </div>
     </div>
@@ -219,8 +231,16 @@ const loadPreview = async (url) => {
       <p className="text-center text-white/60">No requests</p>
     ) : (
       filtered.map((r) => {
-        const currentIndex = STAGES.indexOf(r.current_stage);
+// progress based ONLY on approval status (not current_stage)
+let completedSteps = 0;
 
+if (r.status === "COUNSELLOR_APPROVED") completedSteps = 1;
+if (r.status === "COORDINATOR_APPROVED") completedSteps = 2;
+if (r.status === "HOD_APPROVED") completedSteps = 3;
+
+if (r.status === "REJECTED") {
+  completedSteps = STAGES.indexOf(r.rejected_by || "SUBMITTED");
+}
         return (
           <div key={r.id} className={`${glass} p-6 mb-8`}>
             {/* TOP */}
@@ -322,33 +342,34 @@ const loadPreview = async (url) => {
                   <div
                     className="absolute left-[7px] top-1 w-[2px] bg-green-400"
                     style={{
-                      height: `${(currentIndex / (STAGES.length - 1)) * 100}%`,
+height: `${(completedSteps / (STAGES.length - 1)) * 100}%`,
                     }}
                   />
 
                   <div className="space-y-6">
                     {STAGES.map((stage, i) => {
-                      const isRejected = r.status === "REJECTED";
+  const isRejected = r.status === "REJECTED";
 
-                      let dotColor = "bg-white/30";
-                      if (stage === "SUBMITTED") dotColor = "bg-green-400";
-                      else if (isRejected && i === currentIndex) dotColor = "bg-red-500";
-                      else if (!isRejected && i < currentIndex) dotColor = "bg-green-400";
-                      else if (!isRejected && i === currentIndex) dotColor = "bg-cyan-400";
+  let dotColor = "bg-white/30";
 
+if (r.status === "REJECTED" && i === completedSteps) {
+  dotColor = "bg-red-500";
+} else if (i <= completedSteps) {
+  dotColor = "bg-green-400";
+} else if (i === completedSteps + 1) {
+  dotColor = "bg-cyan-400";
+}
                       return (
                         <div key={stage} className="flex items-center gap-4">
                           <div className={`w-4 h-4 rounded-full ${dotColor}`} />
                           <span className="text-sm text-white/80">
                             {stage === "SUBMITTED"
-                              ? "Submitted"
-                              : stage === "COUNSELLOR"
-                              ? "Counsellor"
-                              : stage === "COORDINATOR"
-                              ? "Coordinator"
-                              : stage === "HOD"
-                              ? "HOD"
-                              : "Warden"}
+  ? "Submitted"
+  : stage === "COUNSELLOR"
+  ? "Counsellor"
+  : stage === "COORDINATOR"
+  ? "Coordinator"
+  : "HOD"}
                           </span>
                         </div>
                       );
@@ -404,26 +425,48 @@ const loadPreview = async (url) => {
       </div>
     )}
 
-    {/* REJECT MODAL */}
-    {showRejectModal && (
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-        <div className="bg-[#020617] p-6 rounded-xl w-96">
-          <h3 className="font-semibold mb-2">Rejection Reason</h3>
-          <textarea
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            rows={4}
-            className="w-full bg-white/10 border border-white/20 rounded p-2"
-          />
-          <div className="flex justify-end gap-3 mt-4">
-            <button onClick={() => setShowRejectModal(false)}>Cancel</button>
-            <button onClick={handleRejectSubmit} className="btn-red">
-              Reject
-            </button>
-          </div>
-        </div>
+   { /* REJECT MODAL */}
+{showRejectModal && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
+    <div className="bg-[#020617] p-6 rounded-xl w-96">
+      <h3 className="font-semibold mb-2">Rejection Reason</h3>
+      <textarea
+        value={rejectReason}
+        onChange={(e) => setRejectReason(e.target.value)}
+        rows={4}
+        className="w-full bg-white/10 border border-white/20 rounded p-2"
+      />
+      <div className="flex justify-end gap-3 mt-4">
+        <button onClick={() => setShowRejectModal(false)}>Cancel</button>
+        <button onClick={handleRejectSubmit} className="btn-red">
+          Reject
+        </button>
       </div>
-    )}
+    </div>
+  </div>
+)}
+
+{/* ✅ BOTTOM TOAST POPUP */}
+{actionPopup && (
+  <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+    <div
+      className={`px-6 py-3 rounded-xl shadow-xl border text-sm font-semibold backdrop-blur-md
+      ${
+        actionPopup === "approved"
+          ? "bg-green-500/20 border-green-400 text-green-400"
+          : actionPopup === "rejected"
+          ? "bg-red-500/20 border-red-400 text-red-400"
+          : "bg-red-500/20 border-red-400 text-red-400"
+      }`}
+    >
+      {actionPopup === "approved"
+        ? "✅ Request Approved"
+        : actionPopup === "rejected"
+        ? "❌ Request Rejected"
+        : "Operation Failed"}
+    </div>
+  </div>
+)}
   </div>
 );
 };
