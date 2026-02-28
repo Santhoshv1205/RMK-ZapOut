@@ -33,7 +33,19 @@ const EntryScan = () => {
       lastScannedCodeRef.current = null;
     }, 2000);
   };
+const formatDateTime = (date) => {
+  if (!date) return "-";
 
+  return new Date(date).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
   /* =====================================================
      DRAW DETECTION BOX
   ===================================================== */
@@ -182,13 +194,26 @@ const EntryScan = () => {
                 </>
               )}
 
-              {result.gatePass && (
-                <div className="mt-4 text-sm text-white/70">
-                  <p>Reason: {result.gatePass.reason}</p>
-                  <p>From: {result.gatePass.from_date}</p>
-                  <p>To: {result.gatePass.to_date}</p>
-                </div>
-              )}
+             {result.gatePass && (
+  <div className="mt-4 text-sm text-white/70 space-y-1">
+    <p>Reason: {result.gatePass.reason}</p>
+
+    <p>From: {formatDateTime(result.gatePass.from_date)}</p>
+    <p>To: {formatDateTime(result.gatePass.to_date)}</p>
+
+    {result.gatePass.exit_datetime && (
+      <p className="text-yellow-400 font-medium">
+        Exit Time: {formatDateTime(result.gatePass.exit_datetime)}
+      </p>
+    )}
+
+    {result.gatePass.entry_datetime && (
+      <p className="text-green-400 font-semibold">
+        Entry Time: {formatDateTime(result.gatePass.entry_datetime)}
+      </p>
+    )}
+  </div>
+)}
 
               <div
                 className={`mt-4 text-xl font-bold ${getMessageColor(

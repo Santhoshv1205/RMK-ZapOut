@@ -171,13 +171,19 @@ const ExitScan = () => {
                 </>
               )}
 
-              {result.gatePass && (
-                <div className="mt-4 text-sm text-white/70">
-                  <p>Reason: {result.gatePass.reason}</p>
-                  <p>From: {result.gatePass.from_date}</p>
-                  <p>To: {result.gatePass.to_date}</p>
-                </div>
-              )}
+             {result.gatePass && (
+  <div className="mt-4 text-sm text-white/70">
+    <p>Reason: {result.gatePass.reason}</p>
+    <p>From: {new Date(result.gatePass.from_date).toLocaleString("en-IN")}</p>
+    <p>To: {new Date(result.gatePass.to_date).toLocaleString("en-IN")}</p>
+
+    {result.gatePass.exit_datetime && (
+      <p className="text-green-400 font-semibold">
+        Exit Time: {new Date(result.gatePass.exit_datetime).toLocaleString("en-IN")}
+      </p>
+    )}
+  </div>
+)}
 
               <div className={`mt-4 text-xl font-bold ${getMessageColor(result.message)}`}>
                 {result.message}

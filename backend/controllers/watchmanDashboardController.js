@@ -79,6 +79,14 @@ await db.query(
   [gatePass.id]
 );
 
+// Fetch updated exit time
+const [updatedRow] = await db.query(
+  `SELECT exit_datetime FROM gate_pass_details WHERE id = ?`,
+  [gatePass.id]
+);
+
+const exitTime = updatedRow[0].exit_datetime;
+
 // Get parent number
 const [parentRows] = await db.query(
   `SELECT father_mobile, mother_mobile, guardian_mobile
@@ -99,9 +107,9 @@ if (parent) {
 has safely exited the campus as per the approved gate pass.
 
 📝 *Reason:* ${gatePass.reason}
-📅 *From Date:* ${gatePass.from_date}
-📅 *To Date:* ${gatePass.to_date}
-⏰ *Exit Time:* ${formatDateTime(new Date())}
+📅 *From Date:* ${formatDateTime(gatePass.from_date)}
+📅 *To Date:* ${formatDateTime(gatePass.to_date)}
+⏰ *Exit Time:* ${formatDateTime(exitTime)}
 
 Regards,
 RMK Engineering College`;
