@@ -20,7 +20,7 @@ const STATUS_LABEL = {
   REJECTED: "Rejected",
 };
 
-const STAGES = ["COUNSELLOR", "COORDINATOR", "HOD", "WARDEN"];
+const STAGES = ["COUNSELLOR", "COORDINATOR", "HOD"];
 
 
 const StudentRequests = () => {
@@ -116,8 +116,8 @@ const StudentRequests = () => {
 return (
   <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#041b32] to-[#020617] text-white">
     <div className="sticky top-0 z-30 px-10 pt-8 pb-6 bg-[#020617]/95 backdrop-blur border-b border-white/10">
-      <h1 className="text-2xl font-semibold mb-4">
-        My <span className="text-[#00d3d1]">{activeFilter}</span> Requests
+<h1 className="text-2xl font-semibold mb-4 text-cyan-300">
+          My <span className="text-[#00d3d1]"></span> Requests
       </h1>
 
       <div className="flex gap-4">
@@ -321,64 +321,60 @@ className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00d3d1] text-black 
                   <div className="absolute left-[12px] top-[8px] bottom-[8px] w-[6px] bg-white/20 rounded-full" />
 
                   {(() => {
-                    const STEP_GAP = 56;
+  const STEP_GAP = 46;
 
-                    let completedCount = 1;
-                    let lineColor = "bg-green-400";
+  let stageIndex = STAGES.indexOf(r.current_stage);
 
-                    if (r.status === "REJECTED") {
-                      completedCount =
-                        STAGES.indexOf(r.rejected_by) + 1;
-                      lineColor = "bg-red-500";
-                    } else if (r.status !== "SUBMITTED") {
-                      completedCount =
-                        STAGES.indexOf(r.current_stage) + 1;
-                    }
+  // if backend still sends WARDEN or unknown stage → treat as fully approved
+  if (stageIndex === -1 && r.status !== "REJECTED") {
+    stageIndex = STAGES.length;
+  }
 
-                    const lineHeight = Math.max(
-                      0,
-                      (completedCount - 1) * STEP_GAP
-                    );
+  let completedCount = 1;
+  let lineColor = "bg-green-400";
 
-                    return (
-                      <div
-                        className={`absolute left-[12px] top-[8px] w-[6px] rounded-full ${lineColor}`}
-                        style={{ height: `${lineHeight}px` }}
-                      />
-                    );
-                  })()}
+  if (r.status === "REJECTED") {
+    const rejectIndex = STAGES.indexOf(r.rejected_by);
+    completedCount = rejectIndex === -1 ? 1 : rejectIndex + 1;
+    lineColor = "bg-red-500";
+  } else if (r.status !== "SUBMITTED") {
+    completedCount = stageIndex + 1;
+  }
+
+  const lineHeight = Math.max(0, (completedCount - 1) * STEP_GAP);
+
+  return (
+    <div
+      className={`absolute left-[12px] top-[8px] w-[6px] rounded-full ${lineColor}`}
+      style={{ height: `${lineHeight}px` }}
+    />
+  );
+})()}
 
                   <ApprovalStep label="SUBMITTED" state="COMPLETED" />
 
                   {STAGES.map((stage) => {
-                    let state = "PENDING";
+  let state = "PENDING";
 
-                    if (
-                      r.status === "REJECTED" &&
-                      r.rejected_by === stage
-                    ) {
-                      state = "REJECTED";
-                    } else if (
-                      r.status !== "SUBMITTED" &&
-                      STAGES.indexOf(stage) <
-                        STAGES.indexOf(r.current_stage)
-                    ) {
-                      state = "COMPLETED";
-                    } else if (
-                      stage === r.current_stage &&
-                      r.status !== "REJECTED"
-                    ) {
-                      state = "ACTIVE";
-                    }
+  const currentIndex = STAGES.indexOf(r.current_stage);
+  const stageIndex = STAGES.indexOf(stage);
 
-                    return (
-                      <ApprovalStep
-                        key={stage}
-                        label={stage}
-                        state={state}
-                      />
-                    );
-                  })}
+  // if backend sends WARDEN → treat as fully approved
+  const safeCurrentIndex =
+    currentIndex === -1 && r.status !== "REJECTED"
+      ? STAGES.length
+      : currentIndex;
+
+  if (r.status === "REJECTED" && r.rejected_by === stage) {
+    state = "REJECTED";
+  } else if (stageIndex < safeCurrentIndex) {
+    state = "COMPLETED";
+  } else if (stageIndex === safeCurrentIndex && r.status !== "REJECTED") {
+    state = "ACTIVE";
+  }
+
+  return <ApprovalStep key={stage} label={stage} state={state} />;
+})}
                 </div>
               </div>
             </div>
