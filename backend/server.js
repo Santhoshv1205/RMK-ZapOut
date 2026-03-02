@@ -23,6 +23,7 @@ import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import deoRoutes from "./routes/deoRoutes.js";
 import watchmanRoutes from "./routes/watchmanRoutes.js";
 import adminWatchmanRoutes from "./routes/adminwatchmanRoutes.js";
+import adminReportRoutes from "./routes/adminReportRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api", adminStaffRoutes);
 app.use("/api/admin", adminStudentRoutes);
+app.use("/api/admin/reports", adminReportRoutes);
 
 app.use("/api/staff", staffStudentRoutes);
 app.use("/api/onduty", onDutyRoutes);
