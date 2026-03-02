@@ -23,21 +23,26 @@ export const markEntry = async (registerNumber) => {
   return res.data;
 };
 
-
-/* =====================================================
+/* =========================================
    👤 WATCHMAN PROFILE
-===================================================== */
-
+========================================= */
 export const getWatchmanProfile = async (userId) => {
-  const res = await API.get(`/profile/${userId}`);
-  return res.data;
+  try {
+    const res = await API.get(`/profile/${userId}`);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch profile";
+  }
 };
 
 export const updateWatchmanProfile = async (userId, data) => {
-  const res = await API.put(`/profile/${userId}`, data);
-  return res.data;
+  try {
+    const res = await API.put(`/profile/${userId}`, data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to update profile";
+  }
 };
-
 /* =====================================================
    📋 WATCHMAN LOGS
 ===================================================== */

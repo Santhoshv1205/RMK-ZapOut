@@ -283,3 +283,72 @@ export const getWatchmanLogs = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
+/*
+=========================================
+👤 FETCH WATCHMAN PROFILE
+GET /api/watchman/profile/:id
+=========================================
+*/
+export const getWatchmanProfile = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+          id,
+          username,
+          email,
+          'WATCHMAN' AS role
+       FROM watchmans
+       WHERE id = ?`,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Watchman not found" });
+    }
+
+    return res.json(rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
+/*
+=========================================
+✏ UPDATE WATCHMAN PROFILE
+PUT /api/watchman/profile/:id
+=========================================
+*/
+export const updateWatchmanProfile = async (req, res) => {
+  const { id } = req.params;
+  const { username } = req.body;
+
+  try {
+    // Validation
+    if (!username) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    const [result] = await db.query(
+      `UPDATE watchmans
+       SET username = ?
+       WHERE id = ?`,
+      [username, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Watchman not found" });
+    }
+
+    return res.json({ message: "Profile updated successfully" });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
