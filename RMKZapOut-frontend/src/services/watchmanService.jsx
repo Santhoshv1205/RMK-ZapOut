@@ -37,3 +37,12 @@ export const updateWatchmanProfile = async (userId, data) => {
   const res = await API.put(`/profile/${userId}`, data);
   return res.data;
 };
+
+/* =====================================================
+   📋 WATCHMAN LOGS
+===================================================== */
+
+export const getWatchmanLogs = async () => {
+  const res = await API.get(`/logs`);
+  return res.data;
+};

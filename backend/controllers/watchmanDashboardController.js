@@ -245,3 +245,41 @@ RMK Engineering College`;
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+// logs
+/*
+=========================================
+📋 WATCHMAN SCAN LOGS
+Fetch Exit / Entry History
+=========================================
+*/
+export const getWatchmanLogs = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        u.register_number,
+        u.username AS student_name,
+        d.name AS department,
+        r.request_type,
+        gpd.reason,
+        gpd.from_date,
+        gpd.to_date,
+        gpd.exit_datetime,
+        gpd.entry_datetime
+      FROM gate_pass_details gpd
+      JOIN requests r ON r.id = gpd.request_id
+      JOIN students s ON s.id = r.student_id
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN departments d ON d.id = s.department_id
+      WHERE gpd.exit_datetime IS NOT NULL
+      ORDER BY gpd.exit_datetime DESC
+    `);
+
+    return res.json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
