@@ -277,13 +277,13 @@ const Students = () => {
       <p><span className="text-gray-400">Register No:</span> {selectedStudent.register_number}</p>
       <p><span className="text-gray-400">Email:</span> {selectedStudent.email}</p>
       <p><span className="text-gray-400">Phone:</span> {selectedStudent.phone || "-"}</p>
-      <p><span className="text-gray-400">DOB:</span> {selectedStudent.dob || "-"}</p>
+      {/* <p><span className="text-gray-400">DOB:</span> {selectedStudent.dob || "-"}</p> */}
       <p><span className="text-gray-400">Assigned Staff:</span> {selectedStudent.assigned_staff || "-"}</p>
     </div>
   </div>
 
   {/* ADDRESS */}
-  <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+  {/* <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
     <h3 className="text-lg font-semibold text-blue-400 mb-4">
       Address Details
     </h3>
@@ -299,7 +299,7 @@ const Students = () => {
         <p>{selectedStudent.permanent_address || "-"}</p>
       </div>
     </div>
-  </div>
+  </div> */}
 
   {/* PARENTS */}
   <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
@@ -320,33 +320,50 @@ const Students = () => {
   </div>
 
   {/* HOSTEL / BUS */}
-  <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-    <h3 className="text-lg font-semibold text-orange-400 mb-4">
-      {selectedStudent.student_type?.toUpperCase() === "HOSTELLER"
-        ? "Hostel Information"
-        : "Transport Information"}
-    </h3>
+ {/* HOSTEL / TRANSPORT */}
+<div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+  <h3 className="text-lg font-semibold text-orange-400 mb-4">
+    {selectedStudent.student_type?.toUpperCase() === "HOSTELLER"
+      ? "Hostel Information"
+      : "Transport Information"}
+  </h3>
 
-    <div className="space-y-2 text-sm">
-      {selectedStudent.student_type?.toUpperCase() === "HOSTELLER" ? (
-        <>
+  <div className="space-y-2 text-sm">
+    {selectedStudent.student_type?.toLowerCase() === "hosteller" ? (
+      <>
+        {selectedStudent.hostel_name && (
           <p>
             <span className="text-gray-400">Hostel Name:</span>{" "}
-            {selectedStudent.hostel_name || "-"}
+            {selectedStudent.hostel_name}
           </p>
+        )}
+
+        {selectedStudent.room_number && (
           <p>
             <span className="text-gray-400">Room Number:</span>{" "}
-            {selectedStudent.room_number || "-"}
+            {selectedStudent.room_number}
           </p>
-        </>
-      ) : (
-        <p>
-          <span className="text-gray-400">Bus Details:</span>{" "}
-          {selectedStudent.bus_details || "-"}
-        </p>
-      )}
-    </div>
+        )}
+
+        {!selectedStudent.hostel_name &&
+          !selectedStudent.room_number && (
+            <p className="text-gray-500">No hostel details available</p>
+          )}
+      </>
+    ) : (
+      <>
+        {selectedStudent.bus_details ? (
+          <p>
+            <span className="text-gray-400">Bus Details:</span>{" "}
+            {selectedStudent.bus_details}
+          </p>
+        ) : (
+          <p className="text-gray-500">No transport details available</p>
+        )}
+      </>
+    )}
   </div>
+</div>
 
 </div>
           </div>

@@ -179,7 +179,7 @@ const StudentList = () => {
         </div>
 
         {/* ADDRESS */}
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+        {/* <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
           <h3 className="text-lg font-semibold text-blue-400 mb-4">
             Address Details
           </h3>
@@ -195,7 +195,7 @@ const StudentList = () => {
               <p>{selectedStudent.permanent_address || "-"}</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* PARENTS */}
         <div className="bg-white/5 rounded-2xl p-6 border border-white/10">

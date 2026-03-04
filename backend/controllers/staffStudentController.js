@@ -35,29 +35,52 @@ const [students] = await db.query(
     u.register_number,
     u.email,
     u.phone,
+
     d.display_name AS department,
+
     s.year_of_study,
+    s.section,
     s.student_type,
+    s.dob,
+    s.address,
+    s.permanent_address,
+
+    s.father_name,
+    s.father_mobile,
+    s.mother_name,
+    s.mother_mobile,
+    s.guardian_name,
+    s.guardian_mobile,
+
+    s.hostel_name,
+    s.room_number,
+    s.bus_details,
+
     s.counsellor_id,
+
     COALESCE(cu.username, co_u.username) AS assigned_staff
+
   FROM students s
   JOIN users u ON u.id = s.user_id
   JOIN departments d ON d.id = s.department_id
+
   LEFT JOIN counsellors c ON c.id = s.counsellor_id
   LEFT JOIN users cu ON cu.id = c.user_id
+
   LEFT JOIN coordinators co ON co.id = s.counsellor_id
   LEFT JOIN users co_u ON co_u.id = co.user_id
+
   WHERE s.department_id = ?
     AND (
       (? = 'BASE_DEPT' AND s.year_of_study = 1)
       OR (? = 'CORE_DEPT' AND s.year_of_study > 1)
-      OR (? IS NULL)  -- HOD or staff without academic_type see all
+      OR (? IS NULL)
     )
+
   ORDER BY s.year_of_study, u.username
   `,
   [departmentId, staffAcademicType, staffAcademicType, staffAcademicType]
 );
-
 
     res.json(students);
   } catch (error) {
@@ -91,7 +114,7 @@ export const getMyStudents = async (req, res) => {
     const staffAcademicType = staffRows[0].academic_type;
 
     /* 2️⃣ Fetch assigned students */
- const [students] = await db.query(
+const [students] = await db.query(
   `
   SELECT 
     s.id,
@@ -99,24 +122,48 @@ export const getMyStudents = async (req, res) => {
     u.register_number,
     u.email,
     u.phone,
+
     d.display_name AS department,
+
     s.year_of_study,
+    s.section,
     s.student_type,
+    s.dob,
+    s.address,
+    s.permanent_address,
+
+    s.father_name,
+    s.father_mobile,
+    s.mother_name,
+    s.mother_mobile,
+    s.guardian_name,
+    s.guardian_mobile,
+
+    s.hostel_name,
+    s.room_number,
+    s.bus_details,
+
     s.counsellor_id,
+
     COALESCE(cu.username, co_u.username) AS assigned_staff
+
   FROM students s
   JOIN users u ON u.id = s.user_id
   JOIN departments d ON d.id = s.department_id
+
   LEFT JOIN counsellors c ON c.id = s.counsellor_id
   LEFT JOIN users cu ON cu.id = c.user_id
+
   LEFT JOIN coordinators co ON co.id = s.counsellor_id
   LEFT JOIN users co_u ON co_u.id = co.user_id
+
   WHERE s.counsellor_id = ?
     AND (
       (? = 'BASE_DEPT' AND s.year_of_study = 1)
       OR (? = 'CORE_DEPT' AND s.year_of_study > 1)
       OR (? IS NULL)
     )
+
   ORDER BY s.year_of_study, u.username
   `,
   [staffTableId, staffAcademicType, staffAcademicType, staffAcademicType]
