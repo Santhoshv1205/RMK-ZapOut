@@ -7,7 +7,7 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: "new",
-        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows Chrome path
+        executablePath: '/usr/bin/google-chrome-stable', // Linux path
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
