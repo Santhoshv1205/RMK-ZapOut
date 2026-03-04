@@ -6,7 +6,8 @@ const { Client, LocalAuth } = pkg;
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        headless: "new",   // important for newer Node versions
+        headless: "new",
+        executablePath: '/usr/bin/google-chrome-stable', // ← important
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
