@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api/admin/reports";
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/admin/reports`;
 
 export const getAdminReports = async (filters) => {
   try {
