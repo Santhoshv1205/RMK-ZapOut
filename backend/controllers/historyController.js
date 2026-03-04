@@ -32,7 +32,7 @@ export const getStudentHistory = async (req, res) => {
         gp.to_date        AS gp_to,
         gp.time_of_leaving AS gp_time_of_leaving,
         gp.out_time       AS gp_out_time,
-        gp.in_time        AS gp_in_time,
+       
         gp.total_days     AS gp_days,
 
         od.event_type     AS od_event_type,
@@ -75,7 +75,7 @@ export const getStudentHistory = async (req, res) => {
         gp_to: r.gp_to,
         gp_time_of_leaving: r.gp_time_of_leaving,
         gp_out_time: r.gp_out_time,
-        gp_in_time: r.gp_in_time,
+       
         gp_days: r.gp_days,
         // On-Duty Fields
         od_event_type: r.od_event_type || "-",

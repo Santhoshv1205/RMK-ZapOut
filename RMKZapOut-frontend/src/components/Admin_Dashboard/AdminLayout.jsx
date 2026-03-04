@@ -87,7 +87,7 @@ const AdminLayout = () => {
             label="Reports"
             path="/admin/reports"
           />
-          <SidebarItem
+          {/* <SidebarItem
             icon={<Bell size={18} />}
             label="Notifications"
             path="/admin/notifications"
@@ -97,7 +97,7 @@ const AdminLayout = () => {
             icon={<Settings size={18} />}
             label="Settings"
             path="/admin/settings"
-          />
+          /> */}
         </nav>
 
         {/* LOGOUT */}
