@@ -2,7 +2,9 @@ import pkg from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 
 const { Client, LocalAuth } = pkg;
-
+const browserFetcher = puppeteer.createBrowserFetcher({
+  path: "/opt/render/.cache/puppeteer",
+});
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
