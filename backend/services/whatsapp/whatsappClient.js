@@ -7,7 +7,7 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: "new",
-        executablePath: '/usr/bin/google-chrome-stable', // ← important
+        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows Chrome path
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -15,7 +15,7 @@ const client = new Client({
             "--disable-gpu",
             "--disable-features=IsolateOrigins,site-per-process"
         ],
-        timeout: 60000
+        timeout: 120000
     }
 });
 
