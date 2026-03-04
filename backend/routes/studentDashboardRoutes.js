@@ -1,7 +1,7 @@
 // routes/studentDashboardRoutes.js
 
 import express from "express";
-import { getStudentDashboardStats } from "../controllers/studentdashboardController.js";
+import { getStudentDashboardStats } from "../controllers/studentDashboardController.js";
 
 const router = express.Router();
 
