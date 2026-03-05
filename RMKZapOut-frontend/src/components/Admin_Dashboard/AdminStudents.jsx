@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Plus, Edit, Trash2, Users } from "lucide-react";
 
-const API = "http://localhost:5000/api/admin";
+const API = `${import.meta.env.VITE_API_URL}/api/admin`;
 
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);

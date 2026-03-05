@@ -3,7 +3,7 @@ import { User, Mail, Phone, ShieldCheck, Pencil, Save, RotateCcw } from "lucide-
 import { fetchStaffProfile, updateStaffProfile } from "../../services/staffProfileService.jsx";
 import axios from "axios";
 
-const DEPT_API = "http://localhost:5000/api/departments";
+const DEPT_API = `${import.meta.env.VITE_API_URL}/api/departments`;
 
 const StaffProfile = () => {
   const sessionUser = JSON.parse(localStorage.getItem("user"));
