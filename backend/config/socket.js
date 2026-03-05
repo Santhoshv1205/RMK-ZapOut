@@ -4,7 +4,13 @@ let io;
 
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
-    cors: { origin: "*" },
+    cors: {
+  origin: [
+    "http://localhost:5173",
+    "https://rmkzapout.web.app"
+  ],
+  methods: ["GET", "POST"]
+},
   });
 
   io.on("connection", (socket) => {
