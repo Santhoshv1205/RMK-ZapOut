@@ -4,7 +4,7 @@ const { Client, LocalAuth } = pkg;
 
 const client = new Client({
 authStrategy: new LocalAuth({
-dataPath: "./whatsapp-session"
+dataPath: "/app/whatsapp-session"
 }),
 puppeteer: {
 headless: "new",
