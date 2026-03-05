@@ -9,7 +9,7 @@ export const initSocket = (httpServer) => {
     "http://localhost:5173",
     "https://rmkzapout.web.app"
   ],
-  methods: ["GET", "POST"]
+  methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
 },
   });
 
