@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://rmk-zapout-production.up.railway.app", {
+const socket = io(import.meta.env.VITE_API_URL, {
   autoConnect: false,
 });
 
