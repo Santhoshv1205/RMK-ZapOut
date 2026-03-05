@@ -3,17 +3,28 @@ import client from "../services/whatsapp/whatsappClient.js";
 export const sendTestMessage = async (req, res) => {
   try {
 
-    const number = "919487769772@c.us"; // replace with your phone
+    if (!client.info) {
+      return res.json({ error: "WhatsApp client not ready yet" });
+    }
 
-    await client.sendMessage(
+    const number = "919487769772@c.us";
+
+    const message = await client.sendMessage(
       number,
       "Test message from RMK ZapOut 🚀"
     );
 
-    res.json({ success: true, message: "WhatsApp message sent" });
+    return res.json({
+      success: true,
+      message: "WhatsApp message sent",
+      id: message.id._serialized
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to send message" });
+    console.error("WhatsApp error:", error);
+    return res.status(500).json({
+      error: "Failed to send message",
+      details: error.message
+    });
   }
 };
