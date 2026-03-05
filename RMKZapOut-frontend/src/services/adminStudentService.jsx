@@ -5,6 +5,7 @@ const API = `${import.meta.env.VITE_API_URL}/api/admin`;
 /* ================= DEPARTMENTS ================= */
 export const fetchDepartments = () =>
   axios.get(`${API}/departments`);
+console.log("API URL:", import.meta.env.VITE_API_URL);
 
 /* ================= COUNSELLORS + COORDINATORS ================= */
 export const fetchStaffByDept = (deptId) =>
