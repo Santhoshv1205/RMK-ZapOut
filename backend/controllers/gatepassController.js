@@ -1,7 +1,8 @@
 import db from "../config/db.js";
 import { getIO } from "../config/socket.js";
 
-import { sendStudentNotification } from "./notifications/staffNotificationController.js";  
+import { sendStudentNotification } from "./notifications/staffNotificationController.js";
+import { sendWhatsAppMessage } from "../services/whatsapp/whatsappService.js";
 
 // ================= FETCH STUDENT INFO =================working fine
 export const getStudentInfo = async (req, res) => {
@@ -46,7 +47,7 @@ export const applyGatepass = async (req, res) => {
   } = req.body;
 
   try {
-    /* ================= STUDENT ================= */
+
     const [studentRows] = await db.query(
       `SELECT id, counsellor_id FROM students WHERE user_id = ?`,
       [student_id]
@@ -58,7 +59,6 @@ export const applyGatepass = async (req, res) => {
     const studentDbId = studentRows[0].id;
     const counsellorId = studentRows[0].counsellor_id;
 
-    /* ================= REQUEST ================= */
     const [requestResult] = await db.query(
       `INSERT INTO requests 
        (student_id, request_type, status, current_stage)
@@ -68,7 +68,6 @@ export const applyGatepass = async (req, res) => {
 
     const requestId = requestResult.insertId;
 
-    /* ================= GATE PASS DETAILS ================= */
     const totalDays =
       Math.floor(
         (new Date(to_date) - new Date(from_date)) /
@@ -77,12 +76,11 @@ export const applyGatepass = async (req, res) => {
 
     await db.query(
       `INSERT INTO gate_pass_details
-       (request_id, reason, out_time, from_date, to_date,  time_of_leaving, total_days)
+       (request_id, reason, out_time, from_date, to_date, time_of_leaving, total_days)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [requestId, reason, out_time, from_date, to_date, out_time, totalDays]
     );
 
-    /* ================= UPDATE GUARDIAN ================= */
     await db.query(
       `UPDATE students
        SET guardian_name = ?, guardian_mobile = ?, guardian_address = ?
@@ -90,7 +88,22 @@ export const applyGatepass = async (req, res) => {
       [guardian_name, guardian_mobile, guardian_address, studentDbId]
     );
 
-    /* ================= NOTIFY COUNSELLOR ================= */
+    if (guardian_mobile) {
+      const message = `RMK ZapOut Notification
+
+Gate Pass Request Submitted
+
+Student ID: ${student_id}
+Reason: ${reason}
+From: ${from_date}
+To: ${to_date}
+Out Time: ${out_time}
+
+Your request is sent for counsellor approval.`;
+
+      await sendWhatsAppMessage(guardian_mobile, message);
+    }
+
     if (counsellorId) {
       const [counsellorRows] = await db.query(
         `SELECT user_id FROM counsellors WHERE id = ?`,
@@ -100,7 +113,6 @@ export const applyGatepass = async (req, res) => {
       if (counsellorRows.length) {
         const counsellorUserId = counsellorRows[0].user_id;
 
-        // Save notification in DB
         await sendStudentNotification(
           counsellorUserId,
           student_id,
@@ -108,7 +120,6 @@ export const applyGatepass = async (req, res) => {
           "gate-pass"
         );
 
-        // 🔥 SOCKET EVENT FOR BADGE
         const io = getIO();
         io.to(`user_${counsellorUserId}`).emit("newRequest", {
           requestType: "GATE_PASS",
@@ -126,7 +137,3 @@ export const applyGatepass = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
-
