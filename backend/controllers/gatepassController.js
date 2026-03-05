@@ -88,21 +88,7 @@ export const applyGatepass = async (req, res) => {
       [guardian_name, guardian_mobile, guardian_address, studentDbId]
     );
 
-    if (guardian_mobile) {
-      const message = `RMK ZapOut Notification
-
-Gate Pass Request Submitted
-
-Student ID: ${student_id}
-Reason: ${reason}
-From: ${from_date}
-To: ${to_date}
-Out Time: ${out_time}
-
-Your request is sent for counsellor approval.`;
-
-      await sendWhatsAppMessage(guardian_mobile, message);
-    }
+    
 
     if (counsellorId) {
       const [counsellorRows] = await db.query(
