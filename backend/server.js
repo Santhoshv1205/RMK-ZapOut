@@ -24,7 +24,6 @@ import deoRoutes from "./routes/deoRoutes.js";
 import watchmanRoutes from "./routes/watchmanRoutes.js";
 import adminWatchmanRoutes from "./routes/adminwatchmanRoutes.js";
 import adminReportRoutes from "./routes/adminReportRoutes.js";
-import testWhatsappRoutes from "./routes/testWhatsappRoutes.js";
 
 dotenv.config();
 
@@ -62,7 +61,7 @@ app.use("/api/deo", deoRoutes);
 app.use("/api/watchman", watchmanRoutes);
 app.use("/api/admin/watchmans", adminWatchmanRoutes);
 
-app.use("/api", testWhatsappRoutes);
+;
 
 const PORT = process.env.PORT || 5000;
 
