@@ -24,14 +24,19 @@ import deoRoutes from "./routes/deoRoutes.js";
 import watchmanRoutes from "./routes/watchmanRoutes.js";
 import adminWatchmanRoutes from "./routes/adminwatchmanRoutes.js";
 import adminReportRoutes from "./routes/adminReportRoutes.js";
+
 dotenv.config();
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- API Routes ---
+app.get("/", (req, res) => {
+res.send("RMK ZapOut Backend Running");
+});
+
 app.use("/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api", adminStaffRoutes);
@@ -47,45 +52,21 @@ app.use("/api/staff/profile", staffProfileRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/history", historyRoutes);
-//dashboard routes
+
 app.use("/api/admin/dashboard", admindashboardRoutes);
 app.use("/api/staff/dashboard", staffDashboardRoutes);
 app.use("/api/student-dashboard", studentDashboardRoutes);
 
-//deo routes
 app.use("/api/deo", deoRoutes);
 app.use("/api/watchman", watchmanRoutes);
 app.use("/api/admin/watchmans", adminWatchmanRoutes);
-// --- HTTP + Socket.io Setup ---
+
 const PORT = process.env.PORT || 5000;
 
 const httpServer = createServer(app);
 
-// initialize socket
 initSocket(httpServer);
 
 httpServer.listen(PORT, () => {
-  console.log(`RMK ZapOut backend running on port ${PORT}`);
+console.log(`RMK ZapOut backend running on port ${PORT}`);
 });
-
-
-// import { sendWhatsAppMessage } from "./services/whatsapp/whatsappService.js";
-
-// setTimeout(() => {
-//     sendWhatsAppMessage("919361321901", `
-// 🎓 RMK ZapOut - Gatepass Approved
-
-// Hello Parent,
-
-// Your Gatepass request has been APPROVED ✅
-
-// 📅 From: 24-02-2026
-// 📅 To: 28-02-2026
-// 📍 Reason: sick leave
-
-// 🧾 Please show the QR code at the college gate for verification.
-
-// Thank you.
-// RMK Engineering College
-// `);
-// }, 15000);
