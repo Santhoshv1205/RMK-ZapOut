@@ -20,9 +20,32 @@ const client = new Client({
       "--no-first-run",
       "--no-zygote",
       "--single-process"
-    ],
-    timeout: 120000
+    ]
   }
+});
+
+client.on("qr", (qr) => {
+  console.log("Scan this QR:");
+  console.log(
+    "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+    encodeURIComponent(qr)
+  );
+});
+
+client.on("ready", () => {
+  console.log("WhatsApp Client is READY");
+});
+
+client.on("authenticated", () => {
+  console.log("WhatsApp authenticated");
+});
+
+client.on("auth_failure", (msg) => {
+  console.error("AUTH FAILURE:", msg);
+});
+
+client.on("disconnected", (reason) => {
+  console.log("WhatsApp disconnected:", reason);
 });
 
 client.initialize();
