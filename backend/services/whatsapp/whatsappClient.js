@@ -1,32 +1,29 @@
 import pkg from "whatsapp-web.js";
-import path from "path";
-import os from "os";
 
 const { Client, LocalAuth } = pkg;
 
-const sessionPath = "./whatsapp-session";
-const chromeProfile = path.join(os.tmpdir(), `chrome-${Date.now()}`);
-
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: sessionPath
+    dataPath: "./.wwebjs_auth"
   }),
   puppeteer: {
     headless: true,
-    userDataDir: chromeProfile,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--no-first-run",
-      "--no-zygote"
-    ]
+      "--no-zygote",
+      "--single-process"
+    ],
+    timeout: 120000
   }
 });
 
 client.on("qr", (qr) => {
-  console.log("Scan this QR:");
+  console.log("Scan this QR with WhatsApp:");
+
   console.log(
     "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=" +
       encodeURIComponent(qr)
@@ -34,11 +31,15 @@ client.on("qr", (qr) => {
 });
 
 client.on("ready", () => {
-  console.log("WhatsApp Client READY");
+  console.log("WhatsApp Client is READY");
 });
 
 client.on("authenticated", () => {
-  console.log("WhatsApp authenticated");
+  console.log("WhatsApp authenticated successfully");
+});
+
+client.on("auth_failure", (msg) => {
+  console.error("Authentication failure:", msg);
 });
 
 client.on("disconnected", (reason) => {
@@ -48,4 +49,3 @@ client.on("disconnected", (reason) => {
 client.initialize();
 
 export default client;
-
