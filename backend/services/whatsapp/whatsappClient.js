@@ -12,7 +12,6 @@ const client = new Client({
   }),
   puppeteer: {
     headless: "new",
-    executablePath: "/usr/bin/chromium",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -24,30 +23,6 @@ const client = new Client({
     ],
     timeout: 120000
   }
-});
-
-client.on("qr", (qr) => {
-  console.log("Scan QR:");
-  console.log(
-    "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=" +
-      encodeURIComponent(qr)
-  );
-});
-
-client.on("ready", () => {
-  console.log("WhatsApp Client is Ready!");
-});
-
-client.on("authenticated", () => {
-  console.log("WhatsApp authenticated successfully");
-});
-
-client.on("auth_failure", (msg) => {
-  console.error("AUTH FAILURE:", msg);
-});
-
-client.on("disconnected", (reason) => {
-  console.log("Client was logged out:", reason);
 });
 
 client.initialize();
