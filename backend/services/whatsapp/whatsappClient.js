@@ -4,7 +4,7 @@ import path from "path";
 
 const { Client, LocalAuth } = pkg;
 
-const sessionPath = path.join(os.tmpdir(), "whatsapp-session");
+const sessionPath = "./whatsapp-session";
 
 const client = new Client({
   authStrategy: new LocalAuth({
