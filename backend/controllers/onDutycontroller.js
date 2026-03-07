@@ -2,10 +2,11 @@ import db from "../config/db.js";
 import { getIO } from "../config/socket.js";
 import cloudinary from "../config/cloudinary.js";
 import { sendStudentNotification } from "./notifications/staffNotificationController.js";
-/* ================== STUDENT PROFILE ================== working fine */
+/* ================== STUDENT PROFILE  ================== working fine */
 export const getStudentProfile = async (req, res) => {
   const { userId } = req.params;
 
+  
   try {
     const [rows] = await db.query(
       `SELECT 
@@ -17,6 +18,7 @@ export const getStudentProfile = async (req, res) => {
        WHERE u.id = ?`,
       [userId],
     );
+    
 
     if (rows.length === 0)
       return res.status(404).json({ message: "Profile not found" });
