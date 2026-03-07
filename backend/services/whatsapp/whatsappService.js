@@ -15,17 +15,11 @@ export const sendWhatsAppMessage = async (number, message) => {
 
     const chatId = `${cleanNumber}@c.us`;
 
-    const isRegistered = await client.isRegisteredUser(chatId);
-
-    if (!isRegistered) {
-      console.log("Number not on WhatsApp:", cleanNumber);
-      return;
-    }
-
     await client.sendMessage(chatId, message);
 
     console.log("WhatsApp message sent to:", cleanNumber);
+
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("Error sending WhatsApp message:", error.message);
   }
-};  
+};
