@@ -53,7 +53,7 @@ export const getDeoRequests = async (userId) => {
 
 export const getDeoDashboardStats = async (userId) => {
   const response = await axios.get(
-    `http://localhost:5000/api/deo/dashboard/${userId}`
+    `${import.meta.env.VITE_API_URL}/api/deo/dashboard/${userId}`
   );
   return response.data;
 };
@@ -67,7 +67,7 @@ export const fetchDepartmentStudents = (userId) => {
 export const getDeoStudentById = async (studentId) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/api/students/${studentId}`
+      `${import.meta.env.VITE_API_URL}/api/students/${studentId}`
     );
     return response.data;
   } catch (error) {
