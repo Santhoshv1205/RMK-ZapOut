@@ -240,6 +240,7 @@ client.on("ready", () => {
   console.log("✅ WhatsApp Client is Ready!");
 });
 
+
 client.on("authenticated", () => {
   console.log("🔐 WhatsApp Authenticated!");
 });
